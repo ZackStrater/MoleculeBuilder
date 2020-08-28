@@ -339,8 +339,3 @@ convert_to_smiles(molecule2, benzene4.c4)
         # then either mark adjacent atom, or mark atom once number of times fragment has been visited == num of atoms
 
 
-# blahdslfkjhalfhaksd
-# akljflkajdsfljkh
-#lasdljfha;sdjf
-#ljsfh;ljajsd;fkl
-#akljdjhlakjdsfh
