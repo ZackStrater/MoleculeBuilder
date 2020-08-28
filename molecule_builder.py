@@ -15,7 +15,6 @@ class Bond:
 
 
 bond_decoder = {   # TODO add chiral stereochemistry
-    0: ".",  # non-bond
     1: "",  # single bond
     2: "=",  # double bond
     3: "#",  # triple bond
@@ -23,6 +22,7 @@ bond_decoder = {   # TODO add chiral stereochemistry
     5: "$",  # ionic bond
     6: "/",  # vinyl up
     7: "\\",  # vinyl down
+    8: ".",  # non-bond
 }
 
 

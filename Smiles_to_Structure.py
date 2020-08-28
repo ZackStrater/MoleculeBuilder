@@ -9,28 +9,30 @@ class MoleculeStructure:
 
 
 bond_encoder = {
-    ".": 0,  # non-bond
-    "": 1,  # single bond
     "=": 2,  # double bond
     "#": 3,  # triple bond
     # aromatic bonds (4) denoted by lowercase element symbol
     "$": 5,  # ionic bond
     "/": 6,  # vinyl up
     "\\": 7,  # vinyl down
+    ".": 8,  # non-bond
 }
 
 
 def encode_bond(bonding_info):
-    if bonding_info in bond_encoder:
-        return bond_encoder[bonding_info]
-    else:
+    code = None
+    for key in bond_encoder:
+        if key in bonding_info:
+            code = (bond_encoder[key])
+    if code is None:
         return 1
+    else:
+        return code
 
 
 new_molecule = MoleculeStructure()
 
-smiles_string_input = "C1(C2(=CC=C(C=1)NCCCC(CCO2)(O)O))"
-
+smiles_string_input = "C1%11(=C(C(=C(C(=C1)C2(=CC=C(C=C2)CCCOC4(CCC3(=CC=C5(C=C7(C(=CC5=C34)C6(CC67)))))N))C(C)CC(C)C)C8(=C9(C(=CC(=C8)C=O)CCCN9)))C%10(CC%10%11))"
 atom_map = []
 for match in re.finditer(r"[A-Z][a-z]?", smiles_string_input):
     atom_map.append((match.start(), Atom(match.group())))
@@ -39,7 +41,6 @@ for match in re.finditer(r"[A-Z][a-z]?", smiles_string_input):
 
 bond_map = re.findall(r"(?:[A-Z][a-z]?)([^A-Za-z]*)", smiles_string_input)
 # ordered list containing all bonding information between atoms
-
 
 for ele in atom_map:
     new_molecule.atom_list.append(ele[1])
@@ -72,9 +73,9 @@ for i in range(0, len(new_molecule.atom_list)):
         else:
             ring_closure_dict[ring_closure_split[2]] = (new_molecule.atom_list[i], ring_closure_split[1])
             # enter atom in ring_closure_dict -> ring #: (Atom, bonding info)
+
     bond_info = re.split(r"(\D*$)", all_bond_info, 1)[1]
     # captures the rest of bonding info after ring closure #'s
-
     if ")" not in bond_info:
         # make Bond between current Atom and Atom (i + 1)
         if i != (len(new_molecule.atom_list) - 1):
@@ -108,7 +109,6 @@ for i in range(0, len(new_molecule.atom_list)):
             else:
                 for c in range(parentheses_count):
                     left_parens_list.pop()
-
 
 
 convert_to_smiles(new_molecule, new_molecule.atom_list[0])
