@@ -343,3 +343,5 @@ convert_to_smiles(molecule2, benzene4.c4)
 # akljflkajdsfljkh
 #lasdljfha;sdjf
 #ljsfh;ljajsd;fkl
+# alkjdflaksjdhf
+#akljdjhlakjdsfh
