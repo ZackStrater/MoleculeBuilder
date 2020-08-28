@@ -29,7 +29,7 @@ def encode_bond(bonding_info):
 
 new_molecule = MoleculeStructure()
 
-smiles_string_input = "C1%11(=C(C(=C(C(=C1)C2(=CC=C(C=C2)CCCOC4(CCC3(=CC=C5(C=C7(C(=CC5=C34)C6(CC67)))))N))C(C)CC(C)C)C8(=C9(C(=CC(=C8)C=O)CCCN9)))C%10(CC%10%11))"
+smiles_string_input = "C1(C2(=CC=C(C=1)NCCCC(CCO2)(O)O))"
 
 atom_map = []
 for match in re.finditer(r"[A-Z][a-z]?", smiles_string_input):
@@ -66,6 +66,7 @@ for i in range(0, len(new_molecule.atom_list)):
             closure_partner = ring_closure_dict[ring_closure_split[2]]
             combined_bonding_info = closure_partner[1] + ring_closure_split[1]
             # often bonding info only included for one of the ring closure partners, so combine and use for both Bonds
+            new_molecule.atom_list[i].bonded_to.append(Bond(closure_partner[0], encode_bond(combined_bonding_info)))
             closure_partner[0].bonded_to.append(Bond(new_molecule.atom_list[i], encode_bond(combined_bonding_info)))
             # adding bonds to both closure partners
         else:
