@@ -63,13 +63,9 @@ for i in range(0, len(new_molecule.atom_list)):
         # separates bonding [1] info from ring # [2]
         if ring_closure_split[2] in ring_closure_dict:
             # if this ring # has already been encountered -> make bond between those two Atoms
-            closure_partner = None
-            for key in ring_closure_dict:
-                if key == ring_closure_split[2]:
-                    closure_partner = ring_closure_dict[key]
+            closure_partner = ring_closure_dict[ring_closure_split[2]]
             combined_bonding_info = closure_partner[1] + ring_closure_split[1]
             # often bonding info only included for one of the ring closure partners, so combine and use for both Bonds
-            new_molecule.atom_list[i].bonded_to.append(Bond(closure_partner[0], encode_bond(combined_bonding_info)))
             closure_partner[0].bonded_to.append(Bond(new_molecule.atom_list[i], encode_bond(combined_bonding_info)))
             # adding bonds to both closure partners
         else:
