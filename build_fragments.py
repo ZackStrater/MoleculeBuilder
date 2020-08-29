@@ -19,7 +19,6 @@ def build_molecule(molecule):
         convert_to_structure(frag_list[i], frag)
         # choose random atom in frag and random atom in molecule, bond them together, then transfer atoms from frag# to molecule
 
-
     convert_to_smiles(molecule, molecule.atom_list[0])
 
 
