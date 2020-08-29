@@ -1,5 +1,4 @@
 
 
-s = "abadc"
-if "" in s:
-    print("yes")
+for i in range(3):
+    print(i)
