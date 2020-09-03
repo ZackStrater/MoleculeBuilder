@@ -5,6 +5,7 @@ class Atom:
     def __init__(self, symbol):
         self.symbol = symbol
         self.bonded_to = []
+        self.can_bond = False
 
 
 class Bond:

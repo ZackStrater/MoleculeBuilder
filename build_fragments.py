@@ -1,7 +1,8 @@
 from fragments import fragments
 import random
-from Smiles_to_Structure import MoleculeStructure, convert_to_structure
-from molecule_builder import convert_to_smiles, Bond
+from Smiles_to_Structure import MoleculeStructure, convert_to_structure, encode_bond
+from molecule_builder import convert_to_smiles, Bond, Atom
+import re
 
 
 frag1 = MoleculeStructure()

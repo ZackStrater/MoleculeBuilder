@@ -32,23 +32,17 @@ def encode_bond(bonding_info):
 
 new_molecule = MoleculeStructure()
 
-smiles_string_input = "C1%11(=C(C(=C(C(=C1)C2(=CC=C(C=C2)CCCOC4(CCC3(=CC=C5(C=C7(C(=CC5=C34)C6(CC67)))))N))C(C)CC(C)C)C8(=C9(C(=CC(=C8)C=O)CCCN9)))C%10(CC%10%11))"
+smiles_string_input = "[R]N1C2=C([R])C([R])=C([R])C([R])=C2N=C1[R]"
 
 
 def convert_to_structure(molecule, smiles_string):
 
-    atom_map = []
-    for match in re.finditer(r"[A-Z][a-z]?", smiles_string):
-        atom_map.append((match.start(), Atom(match.group())))
-        # ordered list of tuples for atoms -> (index, Atom)
-        # atom object created in this step
+    for match in re.findall(r"H|B|C|N|O|P|S|Si|F|Cl|Br|I|\[R\]|b|c|n|o|p|s", smiles_string):
+        molecule.atom_list.append(Atom(match))
+        # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
 
-    bond_map = re.findall(r"(?:[A-Z][a-z]?)([^A-Za-z]*)", smiles_string)
+    bond_map = re.findall(r"(?:[A-Za-z])([^A-Za-z]*)", smiles_string)  # TODO when [NH4+] need to account for [R]
     # ordered list containing all bonding information between atoms
-
-    for ele in atom_map:
-        molecule.atom_list.append(ele[1])
-        # adding all atoms to molecule
 
     left_parens_list = []
     # ordered list of atoms that are followed by a "("
@@ -64,7 +58,7 @@ def convert_to_structure(molecule, smiles_string):
 
         for ele in ring_closure_info:
             ring_closure_split = re.split(r"(\D*(?=\d))", ele, 1)
-            # separates bonding [1] info from ring # [2]
+            # separates bonding info [1] from ring # [2]
             if ring_closure_split[2] in ring_closure_dict:
                 # if this ring # has already been encountered -> make bond between those two Atoms
                 closure_partner = ring_closure_dict[ring_closure_split[2]]
@@ -82,7 +76,7 @@ def convert_to_structure(molecule, smiles_string):
         if ")" not in bond_info:
             # make Bond between current Atom and Atom (i + 1)
             if i != (len(molecule.atom_list) - 1):
-                # prevents index error on last Atom
+                # prevents index error on last Atom TODO see if there is a better way to do this line
                 molecule.atom_list[i].bonded_to.append(Bond(molecule.atom_list[i + 1], encode_bond(bond_info)))
                 molecule.atom_list[i + 1].bonded_to.append(Bond(molecule.atom_list[i], encode_bond(bond_info)))
                 if "(" in bond_info:
@@ -91,7 +85,7 @@ def convert_to_structure(molecule, smiles_string):
         else:
             # if ")" in bond_info, count the # of ")"'s and go back that many "("'s in the string
             # and make Bond to preceding Atom
-            if i != (len(molecule.atom_list) - 1):
+            if i != (len(molecule.atom_list) - 1):  # TODO see if there is a better way to do this line
                 parentheses_count = bond_info.count(")")
                 # counts # of ")" in bond_info and bonds current Atom to
                 bond_atom1 = left_parens_list[-parentheses_count]
@@ -112,6 +106,24 @@ def convert_to_structure(molecule, smiles_string):
                 else:
                     for c in range(parentheses_count):
                         left_parens_list.pop()
+
+    for atom in molecule.atom_list:
+        if atom.symbol.islower():
+            for bond in atom.bonded_to:
+                if bond.atom.symbol.islower():
+                    bond.bond_code = 4
+    # smiles strings sometimes use lowercase to denote an aromatic ring
+    # without explicit bond notation, encode_bond will return a 1 (single bond) for bond_code
+    # this loop records the aromatic bonding information for strings with such notation
+
+        for bond in atom.bonded_to:
+            if bond.atom.symbol == "[R]":
+                atom.can_bond = True
+        # converts [R] into a blank bonding site
+
+        atom.bonded_to = [bond for bond in atom.bonded_to if bond.atom.symbol != "[R]"]
+    molecule.atom_list = [atom for atom in molecule.atom_list if atom.symbol != "[R]"]
+    # removing [R] Atom objects and the Bonds to them
 
 
 convert_to_structure(new_molecule, smiles_string_input)

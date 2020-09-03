@@ -43,6 +43,14 @@ print(Smiles_formulas)
 print(len(Smiles_formulas))
 # reformatting
 
+bracket_count = 0
+for ele in Smiles_formulas:
+    if "[" in ele:
+        bracket_count += 1
+print(bracket_count)
+#  497 strings with brackets
+
+
 
 # make dictionary - > CAS - > name
 # make dictionary - > CAS _-> SMILES

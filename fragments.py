@@ -11,3 +11,9 @@ fragments["ethyl"] = "CC"
 fragments["butyl"] = "CCCC"
 fragments["pyrrolidine"] = "C1CCNC1"
 fragments["cyclopropyl"] = "C1CC1"
+
+# program these with R groups
+# write smiles_to_structure addendum that interprets R group as turn can bond to True
+# under build_fragments, when bond get's added to, turn can bond to false if atom.bonded_to >= 3
+# (that way primary atoms will be able to bond twice)
+
