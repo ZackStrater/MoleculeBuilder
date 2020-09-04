@@ -1,3 +1,4 @@
+import re
 
 
 class Atom:
@@ -6,6 +7,9 @@ class Atom:
         self.symbol = symbol
         self.bonded_to = []
         self.can_bond = False
+        self.heteroatom = False
+        if re.match(r"B|N|O|P|S|Si|F|Cl|Br|I|b|n|o|p|s", self.symbol):
+            self.heteroatom = True
 
 
 class Bond:
