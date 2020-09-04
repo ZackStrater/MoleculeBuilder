@@ -119,7 +119,9 @@ def convert_to_structure(molecule, smiles_string):
         for bond in atom.bonded_to:
             if bond.atom.symbol == "[R]":
                 atom.can_bond = True
-        # converts [R] into a blank bonding site
+        # here the [R] atoms represent sites that the fragment can bond
+        # first atom is bonded to element [R], then can_bond for atom changed to True, then delete [R] atoms from
+        # molecule.atom_list and any bonds to [R] atoms
 
         atom.bonded_to = [bond for bond in atom.bonded_to if bond.atom.symbol != "[R]"]
     molecule.atom_list = [atom for atom in molecule.atom_list if atom.symbol != "[R]"]

@@ -1,16 +1,16 @@
 fragments = {}
 
-fragments["indole"] = "C12=CC=CC=C1NC=C2"
-fragments["benzimidazole"] = "C12=CC=CC=C1NC=N2"
-fragments["imidazole"] = "C1=CN=CN1"
-fragments["benzene"] = "C1=CC=CC=C1"
-fragments["naphthalene"] = "C12=CC=CC=C1C=CC=C2"
-fragments["cyclohexyl"] = "C1CCCCC1"
-fragments["methyl"] = "C"
-fragments["ethyl"] = "CC"
-fragments["butyl"] = "CCCC"
-fragments["pyrrolidine"] = "C1CCNC1"
-fragments["cyclopropyl"] = "C1CC1"
+fragments["indole"] = "[R]N1C2=C([R])C([R])=C([R])C([R])=C2C([R])=C1[R]"
+fragments["benzimidazole"] = "[R]N1C2=C(C([R])=C(C([R])=C2N=C1[R])[R])[R]"
+fragments["imidazole"] = "[R]C1=NC([R])=C([R])N1[R]"
+fragments["benzene"] = "[R]C1=C([R])C([R])=C([R])C([R])=C1[R]"
+fragments["naphthalene"] = "[R]C1=C2C(C([R])=C([R])C([R])=C2[R])=C([R])C([R])=C1[R]"
+fragments["cyclohexyl"] = "[R]C1C([R])C([R])C([R])C([R])C1[R]"
+fragments["methyl"] = "[R]C"
+fragments["ethyl"] = "[R]CC([R])"
+fragments["butyl"] = "[R]CC([R])C([R])C([R])"
+fragments["pyrrolidine"] = "[R]C1C([R])C([R])N([R])C1([R])"
+fragments["cyclopropyl"] = "[R]C1C([R])C1([R])"
 
 # program these with R groups
 # write smiles_to_structure addendum that interprets R group as turn can bond to True

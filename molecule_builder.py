@@ -319,28 +319,13 @@ molecule2.manual_add_frag(hydroxyl4, hydroxyl4.o1, propyl6.c3)
 convert_to_smiles(molecule2, benzene4.c4)
 
 
+# things to program:
+
+# unnecessary parens when entering a ring
+# ring numbers out of order
+# add stereochem with @ and @@
+# add comprehension of [NH4+]
 
 
-
-# things to program
-
-
-# parens get added when you enter a ring, but this  is unecessary
-# could make smiles string simpler - > when adding fragment, put fragment bond at beginning of atom.bonded to
-# make a global map for bonds i.e 2 -> = 3 -> # etc...
-
-# bicyclic fragments
-# two point fragment addition
-# triple bonds
-# add attribute can_bond to Atom class (maybe tracks valency)
-# create auto fragment addition
-# E vs Z stereochem with \/
-# add chirality with @ and @@
-    # cares about fragment order
-
-# change ring numbering system in convert_to_smiles
-    # maybe have dictionary for visited ring fragments
-        # when it's the first time you visit an atom in a ring fragment, mark in dictionary as visited and mark atom
-        # then either mark adjacent atom, or mark atom once number of times fragment has been visited == num of atoms
 
 
