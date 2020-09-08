@@ -30,8 +30,6 @@ def encode_bond(bonding_info):
         return code
 
 
-new_molecule = MoleculeStructure()
-
 smiles_string_input = "[R]N1C2=C([R])C([R])=C([R])C([R])=C2N=C1[R]"
 
 
@@ -127,8 +125,10 @@ def convert_to_structure(molecule, smiles_string):
     molecule.atom_list = [atom for atom in molecule.atom_list if atom.symbol != "[R]"]
     # removing [R] Atom objects and the Bonds to them
 
+    return molecule
 
-convert_to_structure(new_molecule, smiles_string_input)
+
+new_molecule = convert_to_structure(MoleculeStructure(), smiles_string_input)
 
 convert_to_smiles(new_molecule, new_molecule.atom_list[0])
 

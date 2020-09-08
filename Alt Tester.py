@@ -1,10 +1,20 @@
-class MoleculeStructure:
+from collections import Counter
 
-    def __init__(self):
-        self.atom_list = []
+listA = [1, 2, 2, 2, 3, 7]
+
+listB = [1, 2, 6, 3, 4, 2, 2]
 
 
+def listA_in_listB(listA, listB):
 
-frag_list = [MoleculeStructure() for _ in range(4)]
-print(frag_list)
+    cA = Counter(listA)
+    cB = Counter(listB)
 
+    for key in cA:
+        if key not in cB or cA[key] > cB[key]:
+            print("nope")
+            return
+
+    print("ListA in listB")
+
+listA_in_listB(listA, listB)
