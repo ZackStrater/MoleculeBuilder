@@ -116,7 +116,7 @@ def convert_to_structure(molecule, smiles_string):
     # without explicit bond notation, encode_bond will return a 1 (single bond) for bond_code
     # this loop records the aromatic bonding information for strings with such notation
 
-        for bond in atom.bonded_to:
+        for bond in atom.bonded_to:  # TODO add [Z] element to refer to priority bonding
             if bond.atom.symbol == "[R]":
                 atom.can_bond = True
         # here the [R] atoms represent sites that the fragment can bond
