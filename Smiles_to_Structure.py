@@ -30,16 +30,16 @@ def encode_bond(bonding_info):
         return code
 
 
-smiles_string_input = "[R]N1C2=C([R])C([R])=C([R])C([R])=C2N=C1[R]"
+smiles_string_input = "ClCC1(CC(CC1)CCF)CCCBr"
 
 
 def convert_to_structure(molecule, smiles_string):
 
-    for match in re.findall(r"H|B|C|N|O|P|S|Si|F|Cl|Br|I|\[R\]|b|c|n|o|p|s", smiles_string):
+    for match in re.findall(r"H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s", smiles_string):
         molecule.atom_list.append(Atom(match))
         # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
 
-    bond_map = re.findall(r"(?:[A-Za-z])([^A-Za-z]*)", smiles_string)  # TODO when [NH4+] need to account for [R]
+    bond_map = re.findall(r"(?:H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s)([^A-Za-z]*)", smiles_string)  # TODO when [NH4+] need to account for [R]
     # ordered list containing all bonding information between atoms
 
     left_parens_list = []

@@ -4,11 +4,11 @@ from collections import Counter
 
 
 class FragmentAtomData:
-    def __init__(self, atom, symbol):
+    def __init__(self, atom, symbol):  # TODO is adding object here necessary????
         self.atom = atom
         self.symbol = symbol
         self.bonds = []
-        self.sub_branches = []  #TODO add child branch to atoms
+        self.daughter_branches = []  #TODO add child branch to atoms
 
 
 class Branch:
@@ -32,7 +32,7 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
     current_fragment = convert_to_structure(MoleculeStructure(), fragment_string)
 
     def find_atom(fragment):
-        for ele in ["S", "P", "B", "Si", "I", "Br", "Cl", "F", "O", "N", "C"]:
+        for ele in ["Si", "P", "I", "Br", "Cl", "F", "B", "S", "O", "N", "C"]:
             for atom in fragment.atom_list:
                 if atom.symbol == ele:
                     return atom
@@ -45,13 +45,14 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
         for atom in fragment.atom_list:
             visited[atom] = False
         # keeps track of which atoms have been visited
-        branch_num = 1
+        branch_num = 1  # TODO this might be unnecessary with daughter_branches
 
         def dfs(current_atom, previous_atom, branch):
             print(current_atom.symbol)
             visited[current_atom] = True
 
             current_atom_data = FragmentAtomData(current_atom, current_atom.symbol)
+            # data object for current atom
 
             previous_bond = None
             for bond in current_atom.bonded_to:
@@ -60,10 +61,11 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
 
             if len(current_atom.bonded_to) > 2:
                 branch.sequence.append(current_atom_data)
+                # data objects for atoms added sequentially to branch.sequence
                 for bond in current_atom.bonded_to:
                     if bond != previous_bond and not visited[bond.atom]:
                         print("new branch")
-                        new_branch(current_atom, bond.atom)
+                        new_branch(bond.atom, current_atom)
                         # current_atom will be the previous atom for new branch
             # if atom is a branch point, create new branch for each path
 
@@ -82,7 +84,7 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
                 branch.sequence.append(current_atom_data)
             # else dead end
 
-        def new_branch(previous_atom, current_atom):  # what's going on here?????
+        def new_branch(current_atom, previous_atom):
             nonlocal branch_num
             current_branch = Branch(branch_num)
             fragment_branches.map[branch_num] = current_branch
@@ -93,15 +95,15 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
 
         # TODO maybe try starting with dfs on first atom instead??
         # TODO add ring detection eventually
-        new_branch(None, base_atom)
+        new_branch(base_atom, None)
         # start a branch at base atom
 
         for key in fragment_branches.map:
             print(key)
             branch = fragment_branches.map[key]
-            for atom in branch.sequence:
-                print(atom.symbol)
-                for bond in atom.bonds:
+            for atom_info in branch.sequence:
+                print(atom_info.symbol)
+                for bond in atom_info.bonds:
                     print(bond)
 
     map_fragment(current_fragment, base_atom)
@@ -132,4 +134,4 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
         find_starter_atoms(atom, count_base_atom_bonds, starting_atoms)
 
 
-fragmentize("O=C1OC(C2=C(C(N3C)=CC(N4C)=NC3=O)C(C5=NC6=C4C=C(C7=CC=C8C(OC=C8)=C7)C=C6N=C5)=C9N=COC9=C2)CC1C%10=CC(C%11=NC(C%12=C%13C(C(C%14=C%15C=CN=NC%15=CC=C%14)=CC=N%13)=CC(C%16=NC=CC=N%16)=C%12)=NN%11C)=NO%10", "CCCC1CCN=C1")
+fragmentize("O=C1OC(C2=C(C(N3C)=CC(N4C)=NC3=O)C(C5=NC6=C4C=C(C7=CC=C8C(OC=C8)=C7)C=C6N=C5)=C9N=COC9=C2)CC1C%10=CC(C%11=NC(C%12=C%13C(C(C%14=C%15C=CN=NC%15=CC=C%14)=CC=N%13)=CC(C%16=NC=CC=N%16)=C%12)=NN%11C)=NO%10", "ClCSi1(CCCBr)CC(CCF)CC1")
