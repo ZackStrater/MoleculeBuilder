@@ -128,7 +128,7 @@ def convert_to_smiles(molecule, start):
     dfs(start, None)
     # begin dfs process
 
-    # does this even do anything? maybe trying to reorder ring numbers so they go in order?
+    # TODO does this even do anything? maybe trying to reorder ring numbers so they go in order?
     atom_ring_list = []
     for ele in smiles_construction_list:
         if isinstance(ele, Atom):
