@@ -4,11 +4,10 @@ from collections import Counter
 
 
 class FragmentAtomData:
-    def __init__(self, atom, symbol):  # TODO is adding object here necessary????
-        self.atom = atom
+    def __init__(self, symbol):
         self.symbol = symbol
         self.bonds = []
-        self.daughter_branches = []  #TODO add child branch to atoms
+        self.daughter_branches = []
 
 
 class Branch:
@@ -17,14 +16,16 @@ class Branch:
         self.sequence = []
 
 
-class FragmentBranches:
+class FragmentMap:
     def __init__(self):
-        self.map = {}
+        self.branches = {}
+        self.base_atom = None
 
 
 def abbr_bond(bond):
     return bond.bond_code, bond.atom.symbol
 # tuple representation of a bond
+
 
 def fragmentize(smiles_string, fragment_string):  #specify fragment list
 
@@ -39,7 +40,7 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
     base_atom = find_atom(current_fragment)
 
     def map_fragment(fragment, base_atom):
-        fragment_branches = FragmentBranches()
+        fragment_map = FragmentMap()
         # keeps track of branch connectivity
         visited = {}
         for atom in fragment.atom_list:
@@ -48,11 +49,17 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
         branch_num = 1  # TODO this might be unnecessary with daughter_branches
 
         def dfs(current_atom, previous_atom, branch):
-            print(current_atom.symbol)
             visited[current_atom] = True
 
-            current_atom_data = FragmentAtomData(current_atom, current_atom.symbol)
+            current_atom_data = FragmentAtomData(current_atom.symbol)
             # data object for current atom
+
+            if branch:
+                branch.sequence.append(current_atom_data)
+            else:
+                fragment_map.base_atom = current_atom_data
+            # append atom data to current branch
+            # if not branch, current atom is base_atom, add as beginning part of map
 
             previous_bond = None
             for bond in current_atom.bonded_to:
@@ -60,12 +67,10 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
                     previous_bond = bond
 
             if len(current_atom.bonded_to) > 2:
-                branch.sequence.append(current_atom_data)
                 # data objects for atoms added sequentially to branch.sequence
                 for bond in current_atom.bonded_to:
                     if bond != previous_bond and not visited[bond.atom]:
-                        print("new branch")
-                        new_branch(bond.atom, current_atom)
+                        new_branch(bond.atom, current_atom, current_atom_data, bond.bond_code)
                         # current_atom will be the previous atom for new branch
             # if atom is a branch point, create new branch for each path
 
@@ -73,7 +78,6 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
                 for bond in current_atom.bonded_to:
                     if bond != previous_bond:
                         current_atom_data.bonds.append(abbr_bond(bond))
-                branch.sequence.append(current_atom_data)
 
                 for bond in current_atom.bonded_to:
                     if not visited[bond.atom]:
@@ -81,32 +85,35 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
             # elif atom is contiguous point, continue to next atom
 
             else:
-                branch.sequence.append(current_atom_data)
-            # else dead end
+                if not previous_bond:
+                    for bond in current_atom.bonded_to:
+                        current_atom_data.bonds.append(abbr_bond(bond))
+                    for bond in current_atom.bonded_to:
+                        if not visited[bond.atom]:
+                            dfs(bond.atom, current_atom, branch)
+                # else atom is either an endpoint, in which case branch ends
+                # if atom does not have previous bond, it means that mapping started from an atom with only 1 bond
 
-        def new_branch(current_atom, previous_atom):
+        def new_branch(current_atom, previous_atom, previous_atom_data, bond_code):
+            # current atom used to start dfs chain
+            # previous atom helps tell dfs where the previous atom was
             nonlocal branch_num
             current_branch = Branch(branch_num)
-            fragment_branches.map[branch_num] = current_branch
+            fragment_map.branches[branch_num] = current_branch
+            previous_atom_data.daughter_branches.append(((bond_code, current_atom.symbol), current_branch))
+            # add current branch and the bonding info to the atom that spawned current branch
+            # in tuple format: ((bond info, atom symbol), branch object)
             branch_num += 1
             dfs(current_atom, previous_atom, current_branch)
-            # start dfs on new branch and add info to fragment_branches
+            # start dfs on new branch and add info to fragment_map
 
-
-        # TODO maybe try starting with dfs on first atom instead??
         # TODO add ring detection eventually
-        new_branch(base_atom, None)
+
+        dfs(base_atom, None, None)
         # start a branch at base atom
 
-        for key in fragment_branches.map:
-            print(key)
-            branch = fragment_branches.map[key]
-            for atom_info in branch.sequence:
-                print(atom_info.symbol)
-                for bond in atom_info.bonds:
-                    print(bond)
-
-    map_fragment(current_fragment, base_atom)
+        return fragment_map
+    current_fragment_map = map_fragment(current_fragment, base_atom)
 
     base_atom_bonds = [abbr_bond(bond) for bond in base_atom.bonded_to]
     # find base atom (i.e. highest priority atom from find_atom) from fragment
@@ -133,5 +140,49 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
     for atom in total_molecule.atom_list:
         find_starter_atoms(atom, count_base_atom_bonds, starting_atoms)
 
+    def check_starting_atom(starting_atom, molecule, fragment_map):
 
-fragmentize("O=C1OC(C2=C(C(N3C)=CC(N4C)=NC3=O)C(C5=NC6=C4C=C(C7=CC=C8C(OC=C8)=C7)C=C6N=C5)=C9N=COC9=C2)CC1C%10=CC(C%11=NC(C%12=C%13C(C(C%14=C%15C=CN=NC%15=CC=C%14)=CC=N%13)=CC(C%16=NC=CC=N%16)=C%12)=NN%11C)=NO%10", "ClCSi1(CCCBr)CC(CCF)CC1")
+        def try_branch(branch_map, molecule_atom, previous_atom):
+            atom_bonds = [abbr_bond(bond) for bond in molecule_atom.bonded_to if bond.atom != previous_atom]
+            print(atom_bonds)
+            print("branch_map")
+            for a in branch_map.sequence:
+                print(a.symbol)
+                print(a.bonds)
+            # we are now at the first atom of the branch (which has already been confirmed to be the right element
+            # need to check next bond is the same as the one in atom_bonds
+            # if atom_bonds has multiple possible paths, need to apss partial branch_map to each one
+
+        fragment_map.base_atom.daughter_branches.sort(key=lambda x: len(x[1].sequence), reverse=True)
+        # this makes longer branches go first -> have to search the longest branch first
+        # otherwise a shorter branch might be identified in what is actually the long branch
+        # i.e. if atom has ethyl and propyl group, you could find the ethyl group where the propyl group is
+        for branch in fragment_map.base_atom.daughter_branches:
+            for bond in starting_atom.bonded_to:
+                if branch[0] == abbr_bond(bond):
+                    try_branch(branch[1], bond.atom, starting_atom)
+            # branch[0] is a tuple containing the bond_info to the branch and the atom element of the first atom in the branch
+            # looks to see if that info matches any of the bonds of the starting atom
+            # if it finds a match, it does try_branch() to see if that bond path contains the branch
+
+
+
+
+
+    check_starting_atom(starting_atoms[0], total_molecule, current_fragment_map)
+
+fragmentize("ClCSi1(CC(CC1)CCF)CCCBr", "ClCSi1(CC(CC1)CCF)CCCBr")
+
+# we already checked the starting atoms (could check again if it's easier for recursion)
+# let's say current atom_info has daughter branches (i.e. atom_info.daughter_branches > 0)
+# then we are at a branch point and need to check all the branches
+# start with the longest branch (maybe reorder branches in the daughter branches list)
+# check all bonds connected to current atom that match the bond config to the branch we are checking
+# i.e. if atom to branch is double bond to N, check all bonds from current atom to see if any match that
+# for each one that matches run (check branch)
+# if branch check returns True, move on to next branch.
+# if all branches are found, match is found
+
+# if we are checking a branch:
+# check atom bonds from map vs all the bonds for current atom
+# for each possible match -> run a check branch func and pass it a partial list.
