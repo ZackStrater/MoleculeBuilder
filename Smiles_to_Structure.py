@@ -30,7 +30,7 @@ def encode_bond(bonding_info):
         return code
 
 
-smiles_string_input = "ClCC1(CC(CC1)CCF)CCCBr"
+smiles_string_input = "C1(C2(=CC=C(C=1)NCCCC(CCO)(O)O2))"
 
 
 def convert_to_structure(molecule, smiles_string):
@@ -49,6 +49,7 @@ def convert_to_structure(molecule, smiles_string):
 
     for i in range(0, len(molecule.atom_list)):
         # for loop through all Atoms, but allows access to Atom (i + 1)
+        # notice this range includes the last item in the list cause ring closure can be included in last atom
         all_bond_info = (bond_map[i])
         # string with all bonding info for current atom
         ring_closure_info = re.findall(r"(\D*[%]\d{2}|\D*\d)", all_bond_info)
@@ -82,13 +83,15 @@ def convert_to_structure(molecule, smiles_string):
 
         else:
             # if ")" in bond_info, count the # of ")"'s and go back that many "("'s in the string
-            # and make Bond to preceding Atom
+            # and make Bond from atom before last "(" and the next atom (i + 1)
             if i != (len(molecule.atom_list) - 1):  # TODO see if there is a better way to do this line
+                # important not to include last item here, ")" at the end of a string don't actually give structural information
                 parentheses_count = bond_info.count(")")
                 # counts # of ")" in bond_info and bonds current Atom to
                 bond_atom1 = left_parens_list[-parentheses_count]
                 # atom that opened the original bracket
                 bond_atom2 = molecule.atom_list[i + 1]
+                # atom that comes after all the ")"'s
                 bond_atom2.bonded_to.append(Bond(bond_atom1, encode_bond(bond_info)))
                 bond_atom1.bonded_to.append(Bond(bond_atom2, encode_bond(bond_info)))
                 if "(" in bond_info:  # bond info has "C)(C"

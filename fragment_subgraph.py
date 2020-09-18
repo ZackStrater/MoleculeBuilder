@@ -3,7 +3,7 @@ from fragments import heterocycles
 from collections import Counter
 
 
-class FragmentAtomData:
+class AtomData:
     def __init__(self, symbol):
         self.symbol = symbol
         self.bonds = []
@@ -20,6 +20,15 @@ class FragmentMap:
     def __init__(self):
         self.branches = {}
         self.base_atom = None
+
+    def show_map(self):
+        print("base atom:")
+        print(self.base_atom.symbol)
+        print("base_atom branches:")
+        for branch in self.base_atom.daughter_branches:
+            print("branch number:")
+
+            print(branch[0])
 
 
 def abbr_bond(bond):
@@ -51,7 +60,7 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
         def dfs(current_atom, previous_atom, branch):
             visited[current_atom] = True
 
-            current_atom_data = FragmentAtomData(current_atom.symbol)
+            current_atom_data = AtomData(current_atom.symbol)
             # data object for current atom
 
             if branch:
@@ -114,6 +123,7 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
 
         return fragment_map
     current_fragment_map = map_fragment(current_fragment, base_atom)
+    print(current_fragment_map.base_atom.symbol)
 
     base_atom_bonds = [abbr_bond(bond) for bond in base_atom.bonded_to]
     # find base atom (i.e. highest priority atom from find_atom) from fragment
@@ -139,6 +149,9 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
     # keeping track of atoms that match fragment base atom
     for atom in total_molecule.atom_list:
         find_starter_atoms(atom, count_base_atom_bonds, starting_atoms)
+    print("starting atoms:")
+    for atom in starting_atoms:
+        print(atom.symbol)
 
     def check_starting_atom(starting_atom, molecule, fragment_map):
 
@@ -148,7 +161,7 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
             print("branch_map")
             for a in branch_map.sequence:
                 print(a.symbol)
-                print(a.bonds)
+                print(a.bond)
             # we are now at the first atom of the branch (which has already been confirmed to be the right element
             # need to check next bond is the same as the one in atom_bonds
             # if atom_bonds has multiple possible paths, need to apss partial branch_map to each one
@@ -158,31 +171,18 @@ def fragmentize(smiles_string, fragment_string):  #specify fragment list
         # otherwise a shorter branch might be identified in what is actually the long branch
         # i.e. if atom has ethyl and propyl group, you could find the ethyl group where the propyl group is
         for branch in fragment_map.base_atom.daughter_branches:
+            print("branch")
             for bond in starting_atom.bonded_to:
                 if branch[0] == abbr_bond(bond):
+                    print("potential path found from starting atom")
                     try_branch(branch[1], bond.atom, starting_atom)
             # branch[0] is a tuple containing the bond_info to the branch and the atom element of the first atom in the branch
             # looks to see if that info matches any of the bonds of the starting atom
             # if it finds a match, it does try_branch() to see if that bond path contains the branch
-
-
-
+            # branch [1] is
 
 
     check_starting_atom(starting_atoms[0], total_molecule, current_fragment_map)
 
-fragmentize("ClCSi1(CC(CC1)CCF)CCCBr", "ClCSi1(CC(CC1)CCF)CCCBr")
+fragmentize("BrCCSi(CCCl)(CCS)CCI", "BrCCSiCCCl")
 
-# we already checked the starting atoms (could check again if it's easier for recursion)
-# let's say current atom_info has daughter branches (i.e. atom_info.daughter_branches > 0)
-# then we are at a branch point and need to check all the branches
-# start with the longest branch (maybe reorder branches in the daughter branches list)
-# check all bonds connected to current atom that match the bond config to the branch we are checking
-# i.e. if atom to branch is double bond to N, check all bonds from current atom to see if any match that
-# for each one that matches run (check branch)
-# if branch check returns True, move on to next branch.
-# if all branches are found, match is found
-
-# if we are checking a branch:
-# check atom bonds from map vs all the bonds for current atom
-# for each possible match -> run a check branch func and pass it a partial list.
