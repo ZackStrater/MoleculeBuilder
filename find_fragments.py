@@ -158,15 +158,33 @@ def find_fragment(molecule_string, fragment_string):  #specify fragment list
                 if key not in unchecked_bonds or fragment_branch_point_bonds[key] > unchecked_bonds[key]:
                     return False
 
-            # then check individual branches
+            branch_check = {}
             for branch in map_atom_info.daughter_branches:
-                for bond in current_molecule_atom.bonded_to:
-                    if bond.atom != previous_molecule_atom and branch.bond == abbr_bond(bond):
-                        try_branch(branch.sequence, bond.atom, current_molecule_atom)
-                        # if any of the branches aren't place, chekc_branch_point should return false
+                branch_check[branch] = False
+            # set all branches to unconfirmed
 
-            # TODO check if atom has the right connections
-            # then check branches
+            trial_paths = [bond for bond in current_molecule_atom.bonded_to if bond.atom != previous_molecule_atom]
+            # available routes to see if branch matches
+            checked_paths = []
+            # keeps track of bonds that have been used to successfully identify branches
+            for branch in map_atom_info.daughter_branches:
+                # take each branch
+                for bond in trial_paths:
+                    if branch.bond == abbr_bond(bond) and bond not in checked_paths:
+                        # if the bond to the branch matches the current bond (and the current bond hasn't already been used to identify a branch):
+                        if try_branch(branch.sequence, bond.atom, current_molecule_atom):
+                            # test to see if the current branch works on this bond path
+                            branch_check[branch] = True
+                            checked_paths.append(bond)
+                            # if true, the branch was successfully found, turn branch to True in branch check
+                            # add bond used to checked_paths so it isn't used for further branches
+
+            if all(value is True for value in branch_check.values()):
+                return True
+                # if all branches have been found, they will be True in branch_check, branch point is a match, return True
+            else:
+                return False
+                # one or more branches were found, branch point wasn't a match, return False
 
         def check_atom(current_molecule_atom, previous_molecule_atom, branch_sequence, index):  # TODO need a way to pass atom info to branches
             # TODO also might be a problem b/c potential anchor atoms don't exist in branches
@@ -210,6 +228,10 @@ def find_fragment(molecule_string, fragment_string):  #specify fragment list
             print("I'm trying a branch!")
             if check_atom(current_molecule_atom, previous_molecule_atom, branch_sequence, 0):
                 return True
+
+        check_branch_point(potential_anchor_atom, None, fragment_map)
+        # start from check_branch point on the potential anchor atom
+        # the anchor atom in map is treated as a branch point, even if it only has 1 branch
 
     for atom in potential_anchor_atoms:
         check_anchor_atom(atom, anchored_fragment_map, molecule_structure)

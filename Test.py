@@ -1,11 +1,10 @@
 
-x = [1]
-print(len(x))
+x = [1, 2, 3, 4, 5, 6, 7, 8]
 
 
-for ele in x:
-    if ele == 1:
-        print("yes")
-
-if x[-1] == 1:
-    print("yes")
+for num in x:
+    if num%2 == 0:
+        x.remove(num)
+    elif num%3 == 0:
+        x.remove(num)
+print(x)
