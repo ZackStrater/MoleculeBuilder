@@ -35,7 +35,7 @@ def calc_branch_length(branch):  # TODO not sure if this is the right place for 
     return branch_length
 
 
-def find_fragment(molecule_string, fragment_string):  #specify fragment list
+def find_fragment(molecule_string, fragment_string):
 
     molecule_structure = convert_to_structure(MoleculeStructure(), molecule_string)
     fragment_structure = convert_to_structure(MoleculeStructure(), fragment_string)
