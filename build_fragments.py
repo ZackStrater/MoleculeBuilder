@@ -5,13 +5,19 @@ from molecule_builder import convert_to_smiles, Bond
 
 # TODO add fragments to a list and prevent repeats
 # TODO mb collected all fragments first and then assemble
-# have core fragments, and added groups
+
+
 def build_molecule(molecule, frag_num):
     frag_list = [MoleculeStructure() for _ in range(frag_num)]
+    # list of empty molecular structures
+    # structures will get filled with random fragments and then fragments will get pieced together
     frag_print = random.choice(list(heterocycles))
+    # choose random fragment key from fragment list
     print(frag_print)
     frag = heterocycles[frag_print]
+    # frag = string of that fragment
     convert_to_structure(frag_list[0], frag)
+    # convert the seed fragment to structure using the first empty MolecularStructre(), where frag = fragment smiles
     for atom in frag_list[0].atom_list:
         molecule.atom_list.append(atom)
     for i in range(1, frag_num):

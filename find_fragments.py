@@ -285,4 +285,4 @@ def find_fragment(molecule_string, fragment_string):
         print("checking anchor atom")
         check_anchor_atom(atom, anchored_fragment_map, molecule_structure)
 
-find_fragment("SCC(CF)(CBr)CCl", "SCCCCl")
+find_fragment("C1(=NC(=C(O1)C2(N(C(=O)CCCC2)C3(CCCC(N(C3=O)C4(=NN=CC=C4C5(NC(=O)C6(=CC(=CC=C6C=5)C7(N=C(N=CC=7)C8(=C9(C(=CC=C8)OC=C9)))))))C%10(=CC(=O)NC%11(=CC=CC(=C%10%11)C%12(=CC=C%13(N=COC%13=C%12)))))))C%14(=CC=C%15(C(=C%14)C=CN=C%15)))", "O=C1NCCCCC1")

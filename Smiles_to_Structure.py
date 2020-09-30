@@ -39,8 +39,12 @@ def convert_to_structure(molecule, smiles_string):
         molecule.atom_list.append(Atom(match))
         # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
 
-    bond_map = re.findall(r"(?:H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s)([^A-Za-z]*)", smiles_string)  # TODO when [NH4+] need to account for [R]
-    # ordered list containing all bonding information between atoms
+    atoms = re.findall(r"H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s", smiles_string)
+
+    bond_map = re.findall(r"(?:H|N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s)([^A-Za-z]*)", smiles_string)
+    # ordered list containing all bonding symbol denoting bonding information following each element symbol
+    # TODO right now this regex finds R instead of [R], either should remove "[" and "]" from fragment library
+    # TODO at some point might need to add comprehension for charged parts i.e [nH4+]
 
     left_parens_list = []
     # ordered list of atoms that are followed by a "("
