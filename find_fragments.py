@@ -136,7 +136,7 @@ def find_fragment(molecule_string, fragment_string):
     expand_map(anchored_fragment_map)
     print("\n")
 
-    def is_anchor(atom, fragment_anchor_atom, atom_list):
+    def is_potential_anchor(atom, fragment_anchor_atom, atom_list):
         # searches through all atoms in molecules in total_molecule to see if they match the fragment base atom
         # atom -> current atom its checking
         # atom_list is list where potential anchor atoms are stored
@@ -161,7 +161,7 @@ def find_fragment(molecule_string, fragment_string):
     potential_anchor_atoms = []
     # keeping track of atoms that match fragment base atom
     for atom in molecule_structure.atom_list:
-        is_anchor(atom, fragment_anchor_atom, potential_anchor_atoms)
+        is_potential_anchor(atom, fragment_anchor_atom, potential_anchor_atoms)
 
     for atom in potential_anchor_atoms:
         print("potential anchor: ")
@@ -170,8 +170,14 @@ def find_fragment(molecule_string, fragment_string):
     print("\n")
 
     def check_anchor_atom(potential_anchor_atom, fragment_map, molecule):
+        molecule_atoms = set()
+        molecule_atoms.add(potential_anchor_atom)
+        # list to keep track of which atoms in the molecule constitute a matched fragment
 
-        def check_branch_point(current_molecule_atom, previous_molecule_atom, map_atom_info):
+        def check_branch_point(current_molecule_atom, previous_molecule_atom, map_atom_info, branch_atoms):
+            # TODO maybe have it so if branch points add their atoms to the branch that spawned them
+            # TODO and then only a branch point with no branch can deliver a successful fragment to the actual molecule list
+            branch_point_atoms = set()
             cprint("I'm trying a branch point", "yellow")
             map_atom_info.daughter_branches.sort(key=calc_branch_length, reverse=True) # TODO need to calculate total length of branch and daughter branches
             # this makes longer branches go first -> have to search the longest branch first
@@ -204,7 +210,7 @@ def find_fragment(molecule_string, fragment_string):
                 for bond in trial_paths:
                     if branch.bond == abbr_bond(bond) and bond not in checked_paths:
                         # if the bond to the branch matches the current bond (and the current bond hasn't already been used to identify a branch):
-                        if try_branch(branch.sequence, bond.atom, current_molecule_atom):
+                        if try_branch(branch.sequence, bond.atom, current_molecule_atom, branch_point_atoms):
                             # test to see if the current branch works on this bond path
                             cprint("branch successful", "blue")
                             branch_check[branch] = True
@@ -218,6 +224,11 @@ def find_fragment(molecule_string, fragment_string):
 
             if all(value is True for value in branch_check.values()):
                 cprint("branch point match", "blue")
+                if branch_atoms:
+                    branch_atoms.update(branch_point_atoms)  #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@22
+                else:
+                    molecule_atoms.update(branch_point_atoms)
+                    # first branch point does not have a branch that spawned it
                 return True
                 # if all branches have been found, they will be True in branch_check, branch point is a match, return True
             else:
@@ -225,12 +236,13 @@ def find_fragment(molecule_string, fragment_string):
                 return False
                 # one or more branches were found, branch point wasn't a match, return False
 
-        def check_atom(current_molecule_atom, previous_molecule_atom, branch_sequence, index):  # TODO need a way to pass atom info to branches (???)
+        def check_atom_bonds(current_molecule_atom, previous_molecule_atom, branch_sequence, index, branch_atoms):
             cprint("checking atom", "yellow")
             print(current_molecule_atom.symbol)
+            branch_atoms.add(current_molecule_atom)
             if len(branch_sequence[index].daughter_branches) > 0:
                 # atom is branch point and need to check branches
-                return check_branch_point(current_molecule_atom, previous_molecule_atom, branch_sequence[index])
+                return check_branch_point(current_molecule_atom, previous_molecule_atom, branch_sequence[index], branch_atoms)
             else:
                 # atom is either an endpoint or contiguous segment:
                 if not branch_sequence[index].bond:
@@ -249,7 +261,7 @@ def find_fragment(molecule_string, fragment_string):
                         print(branch_sequence[index].bond)
                         print(abbr_bond(unchecked_bonds[0]))
                         if branch_sequence[index].bond == abbr_bond(unchecked_bonds[0]):
-                            return check_atom(unchecked_bonds[0].atom, current_molecule_atom, branch_sequence, index + 1)  # check next atom
+                            return check_atom_bonds(unchecked_bonds[0].atom, current_molecule_atom, branch_sequence, index + 1, branch_atoms)  # check next atom
                             # all branches should either return a function, True, or False.  All child functions should do the same
                             # uncheck_bonds[0].atom becomes new current_molecule_atom, current_molecule_atom becomes previous_molecule_atom
                             # also pass the branch sequence and the index of the next atom_info in the branch
@@ -257,7 +269,7 @@ def find_fragment(molecule_string, fragment_string):
                             cprint("wrong bond", "red")
                             return False
                             # the next atom in the branch either has the wrong bond or atom symbol
-                    else:  # TODO this part doesn't work correctly
+                    else:
                         # there are multiple possible paths branch could go
                         cprint("checking multiple paths for branch", "yellow")
                         # check all ways
@@ -269,19 +281,28 @@ def find_fragment(molecule_string, fragment_string):
                                 print(abbr_bond(bond))
                                 print(branch_sequence[index].bond)
                                 # looks at all possible ways that match the correct bond
-                                if check_atom(bond.atom, current_molecule_atom, branch_sequence, index + 1):
+                                midway_fork = set()
+                                if check_atom_bonds(bond.atom, current_molecule_atom, branch_sequence, index + 1, midway_fork):
+                                    branch_atoms.update(midway_fork)
                                     return True
                                     # return True if any of the paths work (also returns first found)
                         return False
                         # if this else clause didn't return True (i.e. none of the paths succeeded)
                         # then none of the paths are productive, return false
 
-        def try_branch(branch_sequence, current_molecule_atom, previous_molecule_atom):
+        def try_branch(branch_sequence, current_molecule_atom, previous_molecule_atom, branch_point_atoms):
+            branch_atoms = set()
             cprint("I'm trying a branch!", "yellow")
-            if check_atom(current_molecule_atom, previous_molecule_atom, branch_sequence, 0):
+            if check_atom_bonds(current_molecule_atom, previous_molecule_atom, branch_sequence, 0, branch_atoms):
+                branch_point_atoms.update(branch_atoms)  #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
+                # add branch_atoms to branch point_atoms
                 return True
 
-        if check_branch_point(potential_anchor_atom, None, fragment_map):
+        if check_branch_point(potential_anchor_atom, None, fragment_map, None):
+            cprint("number of atoms in fragment: ", "yellow", end="")
+            print(len(molecule_atoms))
+            for atom in molecule_atoms:
+                print(atom.symbol)
             cprint("matched fragment to anchor atom", "magenta")
             return True
         else:
@@ -301,4 +322,4 @@ def find_fragment(molecule_string, fragment_string):
     cprint(fragment_counter, "magenta")
 
 
-find_fragment("O=C(OCC1)N1C2=C(N3C(CCCCC3N4C=NC5=NC(C6=C7C=C(C8CCCCO8)C(OC7=CC(C9=CC=NC=C9)=C6)=O)=NC(C%10CCCOC%10)=C54)=O)N=NN2C%11=NC%12=CC=C(C%13=CC=NN=C%13)C=C%12O%11", "O=C[O]")
+find_fragment("O=C2(C=CC1(=CC=C(C(=C1N2)C3(=NC(=NC=N3)C4(=C(N=C(N=C4)N5(C(=O)CCC5))C6(C(=O)CCCC6))))C%11(=C7(C(C=C(O7)N8(NCCC8C9(=CC=C%10(OC=CCC%10=C9))))=CC=C%11C%12(=NC=C(S%12)N%14(C%13(=CC=CC=C%13C=C%14)))))))", "O=C1C=CC2=CC=C(C(C3=NC=NC=N3)=C2N1)C4=C5C(C=CO5)=CC=C4")
