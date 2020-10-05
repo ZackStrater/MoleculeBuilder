@@ -30,7 +30,7 @@ def encode_bond(bonding_info):
         return code
 
 
-smiles_string_input = "C1(C2(=CC=C(C=1)NCCCC(CCO)(O)O2))"
+smiles_string_input = "CC1CCC(CCCCC2)C3C(C)C4C2(CC5)C6C5CCC7C6C(C)C4C(CCCC7)(C)C31"
 
 
 def convert_to_structure(molecule, smiles_string):
@@ -80,6 +80,7 @@ def convert_to_structure(molecule, smiles_string):
             # make Bond between current Atom and Atom (i + 1)
             if i != (len(molecule.atom_list) - 1):
                 # prevents index error on last Atom TODO see if there is a better way to do this line
+                # # TODO maybe split into range 0 - len(molecule_list) for above stuff and a seperate 0-range_moleculelist -1 for this part
                 molecule.atom_list[i].bonded_to.append(Bond(molecule.atom_list[i + 1], encode_bond(bond_info)))
                 molecule.atom_list[i + 1].bonded_to.append(Bond(molecule.atom_list[i], encode_bond(bond_info)))
                 if "(" in bond_info:

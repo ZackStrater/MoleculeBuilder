@@ -1,13 +1,14 @@
 from Smiles_to_Structure import convert_to_structure, MoleculeStructure
-from fragments import heterocycles
 from collections import Counter
 from termcolor import cprint
+
 
 class AtomData:
     def __init__(self, symbol):
         self.symbol = symbol
         self.bond = None
         self.daughter_branches = []
+        self.ring_closures = set()
 
 
 class Branch:
@@ -56,11 +57,18 @@ def find_fragment(molecule_string, fragment_string):
             visited[atom] = False
         # keeps track of which atoms have been visited
 
+        atom_info_dict = {}
+        # links the molecule_atom and the atom_info representing that atom, used to pass ring_closure info to map
+
+        ring_closure_counter = 1
+
         def dfs(current_atom, previous_atom, current_branch):
             visited[current_atom] = True
 
             current_atom_data = AtomData(current_atom.symbol)
             # data object for current atom
+
+            atom_info_dict[current_atom] = current_atom_data
 
             if current_branch:
                 current_branch.sequence.append(current_atom_data)
@@ -69,12 +77,22 @@ def find_fragment(molecule_string, fragment_string):
 
             unchecked_bonds = [bond for bond in current_atom.bonded_to if bond.atom != previous_atom]
 
+            nonlocal ring_closure_counter
+
             # if more than 1 unchecked bonds (i.e. a branch point), create new branch for each unchecked bond
             if len(unchecked_bonds) > 1:
                 for bond in unchecked_bonds:
                     if not visited[bond.atom]:
                         print("new branch")
                         new_branch(bond.atom, current_atom, current_atom_data, bond.bond_code)
+                    elif not bool(current_atom_data.ring_closures & atom_info_dict[bond.atom].ring_closures):
+                        # if visited[bond.atom], we are at a ring closure
+                        # this bool sees if the atom_info of these two atoms (current atom and the atom its bonded to) share any values
+                        # if they do, this ring closure has already been documented and we don't want to double count it
+                        current_atom_data.ring_closures.add(ring_closure_counter)
+                        atom_info_dict[bond.atom].ring_closures.add(ring_closure_counter)
+                        # add matching values to each atom_info.ring_closure
+                        ring_closure_counter += 1
 
             # if a contiguous section of branch, add bond info
             elif len(unchecked_bonds) == 1:
@@ -83,6 +101,11 @@ def find_fragment(molecule_string, fragment_string):
                         print("contin branch")
                         current_atom_data.bond = abbr_bond(unchecked_bonds[0])
                         dfs(unchecked_bonds[0].atom, current_atom, current_branch)
+                    elif not bool(current_atom_data.ring_closures & atom_info_dict[unchecked_bonds[0].atom].ring_closures):
+                        current_atom_data.ring_closures.add(ring_closure_counter)
+                        atom_info_dict[unchecked_bonds[0].atom].ring_closures.add(ring_closure_counter)
+                        ring_closure_counter += 1
+                        # same as above
                 else:
                     print("new branch")
                     for bond in unchecked_bonds:
@@ -125,6 +148,10 @@ def find_fragment(molecule_string, fragment_string):
             print(branch.bond)
             for atom_info in branch.sequence:
                 print(atom_info.symbol)
+                if len(atom_info.ring_closures) > 0:
+                    cprint("ring closures:", "yellow")
+                    for num in atom_info.ring_closures:
+                        print(num)
                 if atom_info.bond:
                     print(atom_info.bond)
                 if len(atom_info.daughter_branches) > 0:
@@ -175,11 +202,9 @@ def find_fragment(molecule_string, fragment_string):
         # list to keep track of which atoms in the molecule constitute a matched fragment
 
         def check_branch_point(current_molecule_atom, previous_molecule_atom, map_atom_info, branch_atoms):
-            # TODO maybe have it so if branch points add their atoms to the branch that spawned them
-            # TODO and then only a branch point with no branch can deliver a successful fragment to the actual molecule list
             branch_point_atoms = set()
             cprint("I'm trying a branch point", "yellow")
-            map_atom_info.daughter_branches.sort(key=calc_branch_length, reverse=True) # TODO need to calculate total length of branch and daughter branches
+            map_atom_info.daughter_branches.sort(key=calc_branch_length, reverse=True)
             # this makes longer branches go first -> have to search the longest branch first
             # otherwise a shorter branch might be identified in what is actually the long branch
             # i.e. if atom has ethyl and propyl group, you could find the ethyl group where the propyl group is and then be unable to find propyl group
@@ -225,7 +250,7 @@ def find_fragment(molecule_string, fragment_string):
             if all(value is True for value in branch_check.values()):
                 cprint("branch point match", "blue")
                 if branch_atoms:
-                    branch_atoms.update(branch_point_atoms)  #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@22
+                    branch_atoms.update(branch_point_atoms)
                 else:
                     molecule_atoms.update(branch_point_atoms)
                     # first branch point does not have a branch that spawned it
@@ -282,8 +307,10 @@ def find_fragment(molecule_string, fragment_string):
                                 print(branch_sequence[index].bond)
                                 # looks at all possible ways that match the correct bond
                                 midway_fork = set()
+                                # need to separate the branch_atoms here since we don't know if any of the paths will work
                                 if check_atom_bonds(bond.atom, current_molecule_atom, branch_sequence, index + 1, midway_fork):
                                     branch_atoms.update(midway_fork)
+                                    # if one of the paths works, add all the atoms from the midway_fork "branch"
                                     return True
                                     # return True if any of the paths work (also returns first found)
                         return False
@@ -294,7 +321,7 @@ def find_fragment(molecule_string, fragment_string):
             branch_atoms = set()
             cprint("I'm trying a branch!", "yellow")
             if check_atom_bonds(current_molecule_atom, previous_molecule_atom, branch_sequence, 0, branch_atoms):
-                branch_point_atoms.update(branch_atoms)  #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
+                branch_point_atoms.update(branch_atoms)
                 # add branch_atoms to branch point_atoms
                 return True
 
@@ -321,5 +348,11 @@ def find_fragment(molecule_string, fragment_string):
     cprint("number of fragments found:", "yellow", end="")
     cprint(fragment_counter, "magenta")
 
+    # TODO for cycle detection, give atom_info a ring closing attribute, starts as NONe
+    # TODO when identify ring closing event, need to give both atom_info a ring closing number (i.e. 1 for ring 1, 2 for ring 2)
+    # TODO maybe need to make a dictionary while making map with atoms as keys and atom info as values (otherwise how do you modify previous atom_info???)
+    # TODo when traversing anchor atom, and hit ring closing atom -> mark it somehow with the appropriate number
+    # TODO then when you get to the ring closing atom of the corresponding number, need to make sure its bonded to the other atom with that number
 
-find_fragment("O=C2(C=CC1(=CC=C(C(=C1N2)C3(=NC(=NC=N3)C4(=C(N=C(N=C4)N5(C(=O)CCC5))C6(C(=O)CCCC6))))C%11(=C7(C(C=C(O7)N8(NCCC8C9(=CC=C%10(OC=CCC%10=C9))))=CC=C%11C%12(=NC=C(S%12)N%14(C%13(=CC=CC=C%13C=C%14)))))))", "O=C1C=CC2=CC=C(C(C3=NC=NC=N3)=C2N1)C4=C5C(C=CO5)=CC=C4")
+
+find_fragment("O=C(OC1=CC=C(C2=C(C3=NC=CN3)NC=C2)C=C41)C=C4C5=C(C6COC(C7=NC8=CC=CC(C9=CC=CO9)=C8O7)CO6)C%10=C(N%11NCCC%11)C(C%12NCCC%12)=CC(C%13=NC=NC%14=NC=CN=C%13%14)=C%10N=C5", "O=C1C=C2C3=C(C4C5C2)C(C6C(C4=C7CC5)=C(C=C7)CCC6CC8)=C8C=C3O1")
