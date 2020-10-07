@@ -1,11 +1,11 @@
+import random
 
-x = {1, 2, 3, 4}
+def recursive_func(list):
+    list.append(random.randint(3,20))
+    print(f"this is the list: {list}")
+    if len(list) > 20:
+        return
+    recursive_func(list)
 
 
-y = set()
-
-y.add(7)
-y.add(5)
-y.add(6)
-
-print(bool(x and y))
+recursive_func([3])
