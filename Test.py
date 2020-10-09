@@ -1,11 +1,11 @@
-import random
 
-def recursive_func(list):
-    list.append(random.randint(3,20))
-    print(f"this is the list: {list}")
-    if len(list) > 20:
-        return
-    recursive_func(list)
+from collections import Counter
 
+x = {1, 2, 3}
 
-recursive_func([3])
+y = {1: 2, 2: 2, 3: 5, 4: 8, 5: 7}
+
+for num in x:
+    y.pop(num, None)
+
+print(y)
