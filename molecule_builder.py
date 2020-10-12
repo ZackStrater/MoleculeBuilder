@@ -10,6 +10,7 @@ class Atom:
         self.heteroatom = False
         if re.match(r"N|O|P|Si|S|F|Cl|Br|I|B|b|n|o|p|s", self.symbol):
             self.heteroatom = True
+        self.discovered = False
 
 
 class Bond:

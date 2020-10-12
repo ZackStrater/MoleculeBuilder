@@ -30,7 +30,7 @@ def encode_bond(bonding_info):
         return code
 
 
-smiles_string_input = "CC1CCC(CCCCC2)C3C(C)C4C2(CC5)C6C5CCC7C6C(C)C4C(CCCC7)(C)C31"
+smiles_string_input = "NC1(OCCCC2=CC=C(C3=CC4=C(C(C5=C6C(CCCN6)=CC(C=O)=C5)=C3C(C)CC(C)C)C7CC74)C=C2)CCC8=CC=C9C=CC=CC9=C81"
 
 
 def convert_to_structure(molecule, smiles_string):
