@@ -65,7 +65,7 @@ class Molecule:
         frag_atom2.bonded_to.append(Bond(base_atom2, 1))
 
 
-def convert_to_smiles(molecule, start):
+def convert_to_smiles(molecule, start):    # TODO don't have molecule as an arg, just include it in func
     smiles_string = ""
     smiles_construction_list = []
     # ordered list of atoms and parentheses
@@ -147,7 +147,7 @@ def convert_to_smiles(molecule, start):
             for c in atom_info[ele].ring_closures:
                 smiles_string += str(c)
 
-    print(smiles_string)
+    return smiles_string
 
 
 class Benzene:

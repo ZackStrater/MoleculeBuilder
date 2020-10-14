@@ -1,4 +1,4 @@
-from fragments import heterocycles
+from fragments import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids
 import random
 from Smiles_to_Structure import MoleculeStructure, convert_to_structure
 from molecule_builder import convert_to_smiles, Bond
@@ -7,25 +7,29 @@ from molecule_builder import convert_to_smiles, Bond
 # TODO mb collected all fragments first and then assemble
 
 
-def build_molecule(molecule, frag_num):
+def build_molecule(molecule, frag_num, *fragment_libraries):   #TODO remove molecule from arg and just include in func
+    combined_frag_library = {}
+    for library in fragment_libraries:
+        combined_frag_library.update(library)
+    combined_frag_list = list(combined_frag_library)
     frag_list = [MoleculeStructure() for _ in range(frag_num)]
     # list of empty molecular structures
     # structures will get filled with random fragments and then fragments will get pieced together
-    frag_print = random.choice(list(heterocycles))
+    frag_name = random.choice(combined_frag_list)
     # choose random fragment key from fragment list
-    print(frag_print)
-    frag = heterocycles[frag_print]
+    print(frag_name)
+    frag = combined_frag_library[frag_name]
     # frag = string of that fragment
     convert_to_structure(frag_list[0], frag)
     # convert the seed fragment to structure using the first empty MolecularStructre(), where frag = fragment smiles
     for atom in frag_list[0].atom_list:
         molecule.atom_list.append(atom)
-    for i in range(1, frag_num):
-        print_frag = random.choice(list(heterocycles))
-        print(print_frag)
-        frag = heterocycles[print_frag]
-        convert_to_structure(frag_list[i], frag)
-        frag_atom = random.choice([atom for atom in frag_list[i].atom_list if atom.can_bond])
+    for c in range(1, frag_num):
+        print_name = random.choice(combined_frag_list)
+        print(print_name)
+        frag = combined_frag_library[print_name]
+        convert_to_structure(frag_list[c], frag)
+        frag_atom = random.choice([atom for atom in frag_list[c].atom_list if atom.can_bond])
         if frag_atom.heteroatom:
             molecule_atom = random.choice([atom for atom in molecule.atom_list if atom.can_bond and not atom.heteroatom])
         else:
@@ -36,14 +40,16 @@ def build_molecule(molecule, frag_num):
             frag_atom.can_bond = False
         if len(molecule_atom.bonded_to) > 2:
             molecule_atom.can_bond = False
-        for atom in frag_list[i].atom_list:
+        for atom in frag_list[c].atom_list:
             molecule.atom_list.append(atom)
 
-    convert_to_smiles(molecule, molecule.atom_list[0])
+    print(convert_to_smiles(molecule, molecule.atom_list[0]))
+
 
 # TODO add option for two point frag add, which would add a new ring
 
-for i in range(100000):
-    build_molecule(MoleculeStructure(), 10)
+
+for i in range(10):
+    build_molecule(MoleculeStructure(), 10, amino_acids)
 
 

@@ -1,11 +1,9 @@
 
-from collections import Counter
 
-x = {1, 2, 3}
 
-y = {1: 2, 2: 2, 3: 5, 4: 8, 5: 7}
+x = {(1, 3), (1, 4)}
 
-for num in x:
-    y.pop(num, None)
+y = {(1, 4), (1, 5)}
 
-print(y)
+if bool(x & y):
+    print("yes")
