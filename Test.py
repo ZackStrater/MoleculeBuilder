@@ -1,9 +1,15 @@
 
+from fragments import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids
+import re
 
 
-x = {(1, 3), (1, 4)}
+t = open("test_file.txt", "w")
+libs = [heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids]
+for i in libs:
+    for key in i:
+        t.write("\"" + key + "\":")
+        t.write(" \"" + re.sub(r"\(\[R\]\)|\[R\]", "", i[key]) + "\",")
+        t.write("\n")
+    t.write("\n")
 
-y = {(1, 4), (1, 5)}
-
-if bool(x & y):
-    print("yes")
+t.close()

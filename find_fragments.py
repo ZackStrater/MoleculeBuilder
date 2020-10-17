@@ -1,6 +1,7 @@
 from Smiles_to_Structure import convert_to_structure, MoleculeStructure
 from collections import Counter
 from termcolor import cprint
+from fragments import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids
 
 
 class AtomData:
@@ -36,9 +37,12 @@ def calc_branch_length(branch):
     return branch_length
 
 
-def find_fragment(molecule_string, fragment_string):   # TODO need to make adding a list as an arg, otherwise multiple find fragments don't keep track of what's already been discovered
+def find_fragment(fragment_string, molecule_string, structure=None):   # TODO need to make adding a list as an arg, otherwise multiple find fragments don't keep track of what's already been discovered
 
-    molecule_structure = convert_to_structure(MoleculeStructure(), molecule_string)
+    if structure:
+        molecule_structure = structure
+    else:
+        molecule_structure = convert_to_structure(MoleculeStructure(), molecule_string)
     fragment_structure = convert_to_structure(MoleculeStructure(), fragment_string)
 
     def find_anchor_atom(fragment):
@@ -185,21 +189,22 @@ def find_fragment(molecule_string, fragment_string):   # TODO need to make addin
             return
         # atom has already been used to find a fragment
 
+        if atom.symbol != fragment_anchor_atom.symbol:
+            return
+            # check to see if atom is the same element
+
         fragment_anchor_atom_bonds = Counter([abbr_bond(bond) for bond in fragment_anchor_atom.bonded_to])
         # count bonds from anchor atom
 
-        if atom.symbol == fragment_anchor_atom.symbol:
-            # check to see if atom is the same element
-
-            atom_bonds = Counter([abbr_bond(bond) for bond in atom.bonded_to])
-            for key in fragment_anchor_atom_bonds:
-                if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:
-                    # check 1: are there bonds types in fragment base atom that current atom doesn't have
-                    # check 2: does current atom have >= the amount of each bond type compared to fragment base atom
-                    # i.e. are the bonds in fragment anchor atom a subset of the bonds of current atom
-                    return
-            atom_list.append(atom)
-            # if all checks passed, atom is a potential base atom and is  stored in a list
+        atom_bonds = Counter([abbr_bond(bond) for bond in atom.bonded_to])
+        for key in fragment_anchor_atom_bonds:
+            if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:
+                # check 1: are there bonds types in fragment base atom that current atom doesn't have
+                # check 2: does current atom have >= the                                                                    amount of each bond type compared to fragment base atom
+                # i.e. are the bonds in fragment anchor atom a subset of the bonds of current atom
+                return
+        atom_list.append(atom)
+        # if all checks passed, atom is a potential base atom and is  stored in a list
 
     potential_anchor_atoms = []
     # keeping track of atoms that match fragment base atom
@@ -429,16 +434,18 @@ def find_fragment(molecule_string, fragment_string):   # TODO need to make addin
 # TODO exact match on NC1(CCC2=CC=C3C=C4C(C5C4C5)=CC3=C21)OCCCC(C=C6)=CC=C6C7=CC8=C(C9CC98)C(C%10=C%11C(CCCN%11)=CC(C=O)=C%10)=C7C(CC(C)C)C
 # TODO doesn't work (maybe cycle detection can help??????)
 
+def fragmentize(molecule_string, *fragment_libraries):
 
-from fragments import heterocycles
+    molecular_structure = convert_to_structure(MoleculeStructure(), molecule_string)
+    fragments = []
+    for lib in fragment_libraries:
+        for frag in lib:
+            found_frags = find_fragment(lib[frag], None, molecular_structure)
+            for f in range(found_frags):
+                fragments.append(frag)
+    print(fragments)
 
-molecule = "N12CCCC1CCC2"
-heterocycle_fragments = []
-for fragment in heterocycles:
-    cprint(fragment, "red")
-    found = find_fragment(molecule, heterocycles[fragment])
-    if found > 0:
-        heterocycle_fragments.append(fragment)
 
-print(heterocycle_fragments)
+fragmentize("O=C(O)C1=CN(C2CC2)C3=C(C1=O)C=C(F)C(N4CCNCC4)=C3", heterocycles, functionalized_arenes, hydrocarbons, functional_groups)
 
+#find_fragment("NC(N)=O", "C1(OC1NC(=O)N)NC2(CCC(N2)C3(C(=CC=C4(C=3C=CC=C4C5(C=C(C)C=C(C=5)OC6(=C(C=CC=C6O)C(C)C7(=C(O)C=C(C=C7)O)))))C8(=CC=CC=C8OC)))")

@@ -3,10 +3,6 @@ import random
 from Smiles_to_Structure import MoleculeStructure, convert_to_structure
 from molecule_builder import convert_to_smiles, Bond
 
-# TODO add fragments to a list and prevent repeats
-# TODO mb collected all fragments first and then assemble
-
-
 def build_molecule(molecule, frag_num, *fragment_libraries):   #TODO remove molecule from arg and just include in func
     combined_frag_library = {}
     for library in fragment_libraries:
@@ -50,6 +46,6 @@ def build_molecule(molecule, frag_num, *fragment_libraries):   #TODO remove mole
 
 
 for i in range(10):
-    build_molecule(MoleculeStructure(), 10, amino_acids)
+    build_molecule(MoleculeStructure(), 10, heterocycles, functionalized_arenes, functional_groups, hydrocarbons)
 
 
