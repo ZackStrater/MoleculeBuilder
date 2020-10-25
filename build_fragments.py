@@ -1,7 +1,7 @@
-from fragments import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids
+from fragments_building_library import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, amino_acids
 import random
 from Smiles_to_Structure import MoleculeStructure, convert_to_structure
-from molecule_builder import convert_to_smiles, Bond
+from Strucutre_to_Smiles import convert_to_smiles, Bond
 
 def build_molecule(molecule, frag_num, *fragment_libraries):   #TODO remove molecule from arg and just include in func
     combined_frag_library = {}
@@ -45,7 +45,7 @@ def build_molecule(molecule, frag_num, *fragment_libraries):   #TODO remove mole
 # TODO add option for two point frag add, which would add a new ring
 
 
-for i in range(10):
-    build_molecule(MoleculeStructure(), 10, heterocycles, functionalized_arenes, functional_groups, hydrocarbons)
+for i in range(100):
+    build_molecule(MoleculeStructure(), 5, heterocycles, functionalized_arenes, functional_groups, hydrocarbons)
 
 

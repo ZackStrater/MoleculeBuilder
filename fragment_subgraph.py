@@ -1,5 +1,5 @@
 from Smiles_to_Structure import convert_to_structure, MoleculeStructure
-from fragments import heterocycles
+from fragments_building_library import heterocycles
 from collections import Counter
 
 

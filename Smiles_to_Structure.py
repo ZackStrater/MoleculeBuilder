@@ -1,4 +1,4 @@
-from molecule_builder import Atom, Bond, convert_to_smiles
+from Strucutre_to_Smiles import Atom, Bond, convert_to_smiles
 import re
 
 
@@ -30,21 +30,20 @@ def encode_bond(bonding_info):
         return code
 
 
-smiles_string_input = "NC1(OCCCC2=CC=C(C3=CC4=C(C(C5=C6C(CCCN6)=CC(C=O)=C5)=C3C(C)CC(C)C)C7CC74)C=C2)CCC8=CC=C9C=CC=CC9=C81"
+smiles_string_input = "c1ccccc1"
 
-
+# TODO remove molecule from this func, make it just part of the func
 def convert_to_structure(molecule, smiles_string):
 
-    for match in re.findall(r"H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s", smiles_string):
+    for match in re.findall(r"H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s|W|X|Y|Z", smiles_string):
         molecule.atom_list.append(Atom(match))
         # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
 
-    atoms = re.findall(r"H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s", smiles_string)
-
-    bond_map = re.findall(r"(?:H|N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s)([^A-Za-z]*)", smiles_string)
+    bond_map = re.findall(r"(?:H|N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s|W|X|Y|Z)([^A-Za-z]*)", smiles_string)
     # ordered list containing all bonding symbol denoting bonding information following each element symbol
     # TODO right now this regex finds R instead of [R], either should remove "[" and "]" from fragment library
     # TODO at some point might need to add comprehension for charged parts i.e [nH4+]
+    # TODO figure out what to do about H, (i.e. C[@@H] etc.... 
 
     left_parens_list = []
     # ordered list of atoms that are followed by a "("
@@ -120,7 +119,8 @@ def convert_to_structure(molecule, smiles_string):
                     bond.bond_code = 4
     # smiles strings sometimes use lowercase to denote an aromatic ring
     # without explicit bond notation, encode_bond will return a 1 (single bond) for bond_code
-    # this loop records the aromatic bonding information for strings with such notation
+    # this loop records the aromatic bonding information for strings with such notation,
+    # only counting bonds between two lower case atom symbols
 
         for bond in atom.bonded_to:  # TODO add [Z] element to refer to priority bonding
             if bond.atom.symbol == "[R]":
@@ -138,6 +138,6 @@ def convert_to_structure(molecule, smiles_string):
 
 new_molecule = convert_to_structure(MoleculeStructure(), smiles_string_input)
 
-convert_to_smiles(new_molecule, new_molecule.atom_list[0])
+print(convert_to_smiles(new_molecule, new_molecule.atom_list[0]))
 
 

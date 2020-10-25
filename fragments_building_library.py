@@ -1,4 +1,6 @@
 
+# TODO Crotyl/ and vinyl not working properly(the cis or trans bond to [R] group is not preserved because the R group gets removed
+
 heterocycles = {
     "pyrolidinone": "O=C1N([R])C([R])CC1[R]",
     "gamme-butyrrolactone": "O=C1OC([R])CC1[R]",
