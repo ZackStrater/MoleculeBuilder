@@ -33,13 +33,16 @@ def encode_bond(bonding_info):
 smiles_string_input = "c1ccccc1"
 
 # TODO remove molecule from this func, make it just part of the func
+# TODO add removal of H, [], and @ from string (for now)
 def convert_to_structure(molecule, smiles_string):
 
-    for match in re.findall(r"H|N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s|W|X|Y|Z", smiles_string):
+    corrected_smiles_string = re.sub(r"[\[\]H@]", "", smiles_string)  # TODO need to change this at some point
+
+    for match in re.findall(r"N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s|W|X|Y|Z", corrected_smiles_string):
         molecule.atom_list.append(Atom(match))
         # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
 
-    bond_map = re.findall(r"(?:H|N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s|W|X|Y|Z)([^A-Za-z]*)", smiles_string)
+    bond_map = re.findall(r"(?:N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s|W|X|Y|Z)([^A-Za-z]*)", corrected_smiles_string)
     # ordered list containing all bonding symbol denoting bonding information following each element symbol
     # TODO right now this regex finds R instead of [R], either should remove "[" and "]" from fragment library
     # TODO at some point might need to add comprehension for charged parts i.e [nH4+]

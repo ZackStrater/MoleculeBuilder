@@ -1,7 +1,7 @@
 from Smiles_to_Structure import convert_to_structure, MoleculeStructure
 from collections import Counter
 from termcolor import cprint
-from fragments_library import heterocycles, arenes, functional_groups, hydrocarbons
+from fragments_library import amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
 
 class AtomData:
     def __init__(self, symbol):
@@ -246,6 +246,8 @@ def find_fragment(fragment_string, molecule_string, structure=None):   # TODO ne
                 bond_num = len(current_molecule_atom.bonded_to)
                 if bond_num != map_atom_info.phantom_bonds:
                     return False
+            # phantom_bonds is a way to ensure the current atom is bonded to the specified number of atoms
+            # note that phantom bonds includes any bonds for the current molecule_atom, including those to atoms that are "discovered"
 
             branch_point_atoms = set()
             nonlocal currently_visited
@@ -477,8 +479,5 @@ def fragmentize(molecule_string, *fragment_libraries):
     print(fragments)
 
 
-fragmentize("C12N(C3=CC(OC)=CC=C3C14CCN5CC=CC(C(C2(C(OC)=O)O)OC(C)=O)(C45[H])CC)CC", heterocycles, arenes, functional_groups, hydrocarbons)
-
-
-
+fragmentize("CC1=C(C=C(C(NC2=C3C(C=C(S(O)(=O)=O)C=C3S(O)(=O)=O)=C(S(O)(=O)=O)C=C2)=O)C=C1)NC(C4=CC(NC(NC5=CC=CC(C(NC6=C(C=CC(C(NC7=C8C(C=C(S(O)(=O)=O)C=C8S(O)(=O)=O)=C(S(O)(=O)=O)C=C7)=O)=C6)C)=O)=C5)=O)=CC=C4)=O", amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
 

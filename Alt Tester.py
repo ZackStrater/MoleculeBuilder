@@ -1,20 +1,8 @@
-from collections import Counter
-
-listA = [1, 2, 2, 2, 3, 7]
-
-listB = [1, 2, 6, 3, 4, 2, 2]
+import re
 
 
-def listA_in_listB(listA, listB):
+smiles_string = "[H][C@@]12N(C3=C([C@@]14CCN5CC=C[C@@]([C@H]([C@@]2(C(OC)=O)O)OC(C)=O)([C@@]45[H])CC)C=C([C@@]6(C(OC)=O)C[C@@H]7CN(CCC8=C6NC9=CC=CC=C89)C[C@](CC)(C7)O)C(OC)=C3)C"
 
-    cA = Counter(listA)
-    cB = Counter(listB)
+smiles_string1 = re.sub(r"[\[\]H@]", "", smiles_string)
 
-    for key in cA:
-        if key not in cB or cA[key] > cB[key]:
-            print("nope")
-            return
-
-    print("ListA in listB")
-
-listA_in_listB(listA, listB)
+print(smiles_string1)
