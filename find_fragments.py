@@ -3,6 +3,7 @@ from collections import Counter
 from termcolor import cprint
 from fragments_library import amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
 
+
 class AtomData:
     def __init__(self, symbol):
         self.symbol = symbol
@@ -54,7 +55,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):   # TODO ne
     fragment_anchor_atom = find_anchor_atom(fragment_structure)
     # the actual atom object of highest priority in the fragment structure
 
-    def map_fragment(fragment, anchor_atom):
+    def map_fragment(fragment, anchor_atom):  # TODO probably want to run potential anchor checks before mapping fragment
 
         visited = {}
         for atom in fragment.atom_list:
@@ -223,7 +224,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):   # TODO ne
 
     potential_anchor_atoms = []
     # keeping track of atoms that match fragment base atom
-    for atom in molecule_structure.atom_list:  # TODO do I wanna do an element check here?????
+    for atom in molecule_structure.atom_list:
         is_potential_anchor(atom, fragment_anchor_atom, potential_anchor_atoms)
 
     for atom in potential_anchor_atoms:
@@ -460,11 +461,11 @@ def find_fragment(fragment_string, molecule_string, structure=None):   # TODO ne
     cprint("number of fragments found:", "yellow", end="")
     cprint(fragment_counter, "magenta")
 
-    return fragment_counter
+    return fragment_counter  # TODO may want to change the return to something else eventually (the particular atoms???)
 
 
 # TODO exact match on NC1(CCC2=CC=C3C=C4C(C5C4C5)=CC3=C21)OCCCC(C=C6)=CC=C6C7=CC8=C(C9CC98)C(C%10=C%11C(CCCN%11)=CC(C=O)=C%10)=C7C(CC(C)C)C
-# TODO doesn't work (maybe cycle detection can help??????)
+
 
 def fragmentize(molecule_string, *fragment_libraries):
 
@@ -472,12 +473,12 @@ def fragmentize(molecule_string, *fragment_libraries):
     fragments = []
     for lib in fragment_libraries:
         for frag in lib:
-            cprint(frag, "magenta")
-            found_frags = find_fragment(lib[frag], None, molecular_structure)
-            for f in range(found_frags):
-                fragments.append(frag)
+            for frag_res_structure in lib[frag]:
+                cprint(frag, "magenta")
+                for f in range(find_fragment(frag_res_structure, None, molecular_structure)):
+                    fragments.append(frag)
     print(fragments)
 
 
-fragmentize("CC1=C(C=C(C(NC2=C3C(C=C(S(O)(=O)=O)C=C3S(O)(=O)=O)=C(S(O)(=O)=O)C=C2)=O)C=C1)NC(C4=CC(NC(NC5=CC=CC(C(NC6=C(C=CC(C(NC7=C8C(C=C(S(O)(=O)=O)C=C8S(O)(=O)=O)=C(S(O)(=O)=O)C=C7)=O)=C6)C)=O)=C5)=O)=CC=C4)=O", amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+fragmentize("NC1=C2C(N=C(NC3=C4C(NC=N4)=NC=N3)N2C5=NC6=C(N=CN6)C(N)=N5)=NC(N(C=N7)C8=C7N=C(Nc9ncnc%10ncnc9%10)N=C8N)=N1", amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
 
