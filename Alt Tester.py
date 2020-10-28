@@ -1,8 +1,24 @@
-import re
+from termcolor import cprint
+import itertools
 
+a = {"a": 1, "b": 2, "c": 3}
+b = {"d": 4, "e": 5, "f": 6}
+c = {"g": 7, "h": 8, "i": 9}
 
-smiles_string = "[H][C@@]12N(C3=C([C@@]14CCN5CC=C[C@@]([C@H]([C@@]2(C(OC)=O)O)OC(C)=O)([C@@]45[H])CC)C=C([C@@]6(C(OC)=O)C[C@@H]7CN(CCC8=C6NC9=CC=CC=C89)C[C@](CC)(C7)O)C(OC)=C3)C"
+def hierarchy_check(*libraries):
+    def check_func(index, library):
+        truncated_lib = itertools.islice(library.items(), index)
+        for k, v in truncated_lib:
+            print(k, v)
+    total_library = {}
+    for lib in libraries:
+        total_library.update(lib)
+    for i, (key, value) in enumerate(total_library.items()):
+        cprint("new entry:", "blue")
+        print(i, key, value)
+        cprint("checked entries:", "blue")
+        check_func(i, total_library)
+        print("\n")
 
-smiles_string1 = re.sub(r"[\[\]H@]", "", smiles_string)
+hierarchy_check(a, b, c)
 
-print(smiles_string1)

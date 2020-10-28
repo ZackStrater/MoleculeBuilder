@@ -139,8 +139,5 @@ def convert_to_structure(molecule, smiles_string):
     return molecule
 
 
-new_molecule = convert_to_structure(MoleculeStructure(), smiles_string_input)
-
-print(convert_to_smiles(new_molecule, new_molecule.atom_list[0]))
 
 

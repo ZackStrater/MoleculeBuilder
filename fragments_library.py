@@ -4,18 +4,14 @@
 
 # TODO maybe add system where atom has a fragemnt attribute (so you can tell if a nitrogen is conjugated for example)
 
-# TODO maybe add a funciton where it only checks lower case structure if it detects multiple lower case atom symbols?
-
 # TODO add special instructions for certain structures
 # TODO could replace current system of phantom bonds
-# TODO could tell it to make sure X atom has however many bonds connected to whatever
+# TODO could tell it to make sure X atom has however many bonds connected to whatever  (i.e. to see whether an acyl group is connected to a nitrogen)
 # could also check for CIS/Trans, and check for conjugation
 
-# TODO may need to distinguish between susbistuted amin heterocycles (i.e. methyl piperidine and piperidine)
+# TODO may need to distinguish between susbistuted amine heterocycles (i.e. methyl piperidine and piperidine)
 
-# TODO add hierarchy function to library (searches all fragments above current fragment to see if any of them a a subgraph of current fragemnt)
-
-amino_acids = {
+peptide_amino_acids = {
     "Methionine": ["NC(C=O)CCSC"],
     "Tyrosine": ["NC(C=O)CC1=CC=C(O)C=C1"],
     "Phenylalanine": ["NC(C=O)CC1=CC=CC=C1", "NC(C=O)Cc1ccccc1"],
@@ -49,10 +45,7 @@ heterocycles = {
     "morpholine": ["C1COCCN1"],
     "cytosine": ["O=C1NC=CC(N)=N1"],
     "Tetrahydrothiophene": ["C1CCCS1"],
-    "thiophene": ["C1=CC=CS1", "c1cccs1"],
     "uracil": ["O=C(NC=C1)NC1=O"],
-    "oxazole": ["C1=NC=CO1", "c1ncco1"],
-    "thiazole": ["C1=CN=CS1", "c1cncs1"],
     "indoline": ["N1C2=CC=CC=C2CC1", "C1(CCN2)=C2C=CC=C1", "N1c2ccccc2CC1"],
     "pyrrolizidine": ["C1CCN2C1CCC2"],
     "indole": ["N1C2=CC=CC=C2C=C1", "C1(C=CN2)=C2C=CC=C1", "n1c2ccccc2cc1"],
@@ -76,6 +69,9 @@ heterocycles = {
     "coumarin": ["O=C1C=CC2=CC=CC=C2O1", "O=C(O1)C=CC2=C1C=CC=C2", "O=C(C=C1)Oc2c1cccc2"],
     "quinolinone": ["O=C1C=CC2=CC=CC=C2N1", "O=C(N1)C=CC2=C1C=CC=C2", "O=C(N1)C=Cc2c1cccc2"],
     "isoquinolinone": ["O=C1NC=CC2=CC=CC=C21", "O=C1NC=CC2=C1C=CC=C2", "O=C1NC=Cc2c1cccc2"],
+    "thiophene": ["C1=CC=CS1", "c1cccs1"],
+    "oxazole": ["C1=NC=CO1", "c1ncco1"],
+    "thiazole": ["C1=CN=CS1", "c1cncs1"],
     "caprolactam": ["O=C1NCCCCC1"],
     "piperazine": ["N1CCNCC1"],
     "hydantoin": ["O=C1NCC(N1)=O"],
@@ -115,8 +111,6 @@ arenes = {
     }
 
 functional_groups = {
-    "tetrahydropyranone": ["O=C1CCOCC1"],
-    "tetrahydropyran": ["C1CCCCO1"],
     "tetrahydrofuran": ["C1CCCO1"],
     "cyclohexanone": ["O=C1CCCCC1"],
     "cyclohexenone": ["O=C1C=CCCC1"],
@@ -132,6 +126,11 @@ functional_groups = {
     "Cyano": ["C#N"],
     "trifluoromethyl": ["C(F)(F)F"],
     "difluoromethyl": ["C(F)F"],
+    "hydrazide(acyl)": ["NNC=O"],
+    "hydrazide(sulfonoyl)": ["NNS(=O)(=O)"],
+    "oxime": ["C=NO"],
+    "hydrazone": ["C=NN"],
+    "hydrazine": ["NN"],
     "sulfonamide": ["O=S(N)=O"],
     "carboxylic acid": ["O=COW"],
     "acetoxy": ["WCC(OX)=O"],
@@ -139,13 +138,11 @@ functional_groups = {
     "ethyl ester": ["O=COC(X)CW"],
     "ester": ["O=COX"],
     "amide": ["NC(=O)Y"],
+    "sulfonic acid": ["O=S(O)=O"],
+    "sulfone": ["O=S=O"],
     "sulfoxide": ["O=SY"],
     "thiol": ["SW"],
     "thioether": ["SX"],
-    "vinyl": ["C=C"],
-    "alkyne": ["C#C"],
-    "sulfonic acid": ["O=S(O)=O"],
-    "Sulfone": ["O=S=O"],
     "guanidine": ["N=C(N)N"],
     "amidine": ["N=CN"],
     "imine": ["N=C"],
@@ -174,12 +171,14 @@ hydrocarbons = {
     "cyclohexene": ["C1CCC=CC1"],
     "1,3-cyclopentadiene": ["C1C=CC=C1"],
     "cyclopentene": ["C1CCC=C1"],
+    "vinyl": ["C=C"],
+    "alkyne": ["C#C"],
+    "addamantyl": ["C1(CC2C3)CC(C2)CC3C1"],
     "cyclooctane": ["C1CCCCCCC1"],
     "cyclohpetane": ["C1CCCCCC1"],
     "cyclohexane": ["C1CCCCC1"],
     "cyclopentane": ["C1CCCC1"],
     "cyclobutane": ["C1CCC1"],
-    "addamantyl": ["C1(CC2C3)CC(C2)CC3C1"],
     "octyl": ["CCCCCCCC"],
     "septyl": ["CCCCCCC"],
     "hexyl": ["CCCCCC"],
@@ -192,9 +191,6 @@ hydrocarbons = {
     "tertiary carbon": ["CY"],
     "quaternary carbon": ["CZ"],
     }
-
-
-
 
 
 def remove_r_groups():
@@ -233,5 +229,7 @@ def aryl_smiles():
 
     t.close()
 
-#aryl_smiles()
+
+
+
 

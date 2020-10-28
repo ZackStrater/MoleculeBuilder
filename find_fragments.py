@@ -1,7 +1,7 @@
 from Smiles_to_Structure import convert_to_structure, MoleculeStructure
 from collections import Counter
 from termcolor import cprint
-from fragments_library import amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
+from fragments_library import peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
 
 
 class AtomData:
@@ -480,5 +480,30 @@ def fragmentize(molecule_string, *fragment_libraries):
     print(fragments)
 
 
-fragmentize("NC1=C2C(N=C(NC3=C4C(NC=N4)=NC=N3)N2C5=NC6=C(N=CN6)C(N)=N5)=NC(N(C=N7)C8=C7N=C(Nc9ncnc%10ncnc9%10)N=C8N)=N1", amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+def hierarchy_check(*libraries):  # TODO need to move this somewhere
+    import itertools
+    from termcolor import cprint
+    hierarchy_list = []
 
+    def check_func(index, library, chem_name, structures):
+        truncated_lib = itertools.islice(library.items(), index)
+        for k, v in truncated_lib:
+            for c in v:
+                for z in structures:
+                    if find_fragment(c, z) > 0:
+                        hierarchy_list.append((chem_name, k))
+
+    total_library = {}
+    for lib in libraries:
+        total_library.update(lib)
+    for i, (key, value) in enumerate(total_library.items()):
+        cprint("new entry:", "blue")
+        print(i, key, value)
+        cprint("checked entries:", "blue")
+        check_func(i, total_library, key, value)
+        print("\n")
+
+    print(hierarchy_list)
+
+
+fragmentize("COC1=NC2=C(C=C1[C@H]([C@@](CCN(C)C)(C3=CC=CC4=C3C=CC=C4)O)C5=CC=CC=C5)C=C(C=C2)Br", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
