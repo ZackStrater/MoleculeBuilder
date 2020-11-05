@@ -8,7 +8,7 @@ class Atom:
         self.bonded_to = []
         self.can_bond = False
         self.heteroatom = False
-        if re.match(r"N|O|P|Si|S|F|Cl|Br|I|B|b|n|o|p|s", self.symbol):
+        if re.match(r"N|O|P|Si|S|F|Cl|Br|I|B|Q|b|n|o|p|s", self.symbol):
             self.heteroatom = True
         self.discovered = False
 
@@ -29,6 +29,7 @@ bond_decoder = {   # TODO add chiral stereochemistry
     6: "/",  # vinyl up
     7: "\\",  # vinyl down
     8: ".",  # non-bond
+    9: "&" # any bond
 }
 
 
@@ -45,7 +46,7 @@ class AtomSmiles:
         self.closure_partners = []
 
 
-def convert_to_smiles(molecule, start):    # TODO don't have molecule as an arg, just include it in func
+def convert_to_smiles(molecule, start):    # TODO don't have molecule as an arg, just include it in func @@@@
     smiles_string = ""
     smiles_construction_list = []
     # ordered list of atoms and parentheses
@@ -131,8 +132,6 @@ def convert_to_smiles(molecule, start):    # TODO don't have molecule as an arg,
 
 # TODO unnecessary parens when entering a ring
 # TODO ring numbers out of order
-# TODO add stereochem with @ and @@
-# TODO add comprehension of [NH4+]
 
 
 

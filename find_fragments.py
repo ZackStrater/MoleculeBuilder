@@ -2,7 +2,7 @@ from Smiles_to_Structure import convert_to_structure, MoleculeStructure
 from collections import Counter
 from termcolor import cprint
 from fragments_library import peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
-
+import time
 
 class AtomData:
     def __init__(self, symbol):
@@ -23,6 +23,25 @@ def abbr_bond(bond):
     return bond.bond_code, bond.atom.symbol
 
 
+def check_bond(bond, map_bond):
+    if abbr_bond(bond) == map_bond:
+        return True
+    elif map_bond[0] != 9 and map_bond[1] != "Q" and map_bond[1] != "R":
+        return False
+    elif bond.bond_code == map_bond[0]:
+        if map_bond[1] == "R":
+            return True
+        elif map_bond[1] == "Q" and bond.atom.heteroatom:
+            return True
+    elif bond.atom.symbol == map_bond[1]:
+        if map_bond[0] == 9:
+            return True
+    elif map_bond == (9, "Q"):
+        return True
+    else:
+        return False
+
+
 def calc_branch_length(branch):
     branch_length = 0
 
@@ -38,7 +57,7 @@ def calc_branch_length(branch):
     return branch_length
 
 
-def find_fragment(fragment_string, molecule_string, structure=None):   # TODO need to make adding a list as an arg, otherwise multiple find fragments don't keep track of what's already been discovered
+def find_fragment(fragment_string, molecule_string, structure=None):
 
     if structure:
         molecule_structure = structure
@@ -282,7 +301,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):   # TODO ne
             for branch in map_atom_info.daughter_branches:
                 # take each branch
                 for bond in trial_paths:
-                    if branch.bond == abbr_bond(bond) and bond not in checked_paths and bond.atom not in currently_visited and not bond.atom.discovered:
+                    if check_bond(bond, branch.bond) and bond not in checked_paths and bond.atom not in currently_visited and not bond.atom.discovered:
                         # if the bond to the branch matches the current bond (and the current bond hasn't already been used to identify a branch):
                         if try_branch(branch.sequence, bond.atom, current_molecule_atom, branch_point_atoms):
                             # test to see if the current branch works on this bond path
@@ -415,7 +434,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):   # TODO ne
                             if map_atom_info.bond != abbr_bond(bond):  # this is purely for seeing what's happening
                                 print(abbr_bond(bond))
                                 print(map_atom_info.bond)
-                            if map_atom_info.bond == abbr_bond(bond) and bond.atom not in currently_visited and not bond.atom.discovered:
+                            if check_bond(bond, map_atom_info.bond) and bond.atom not in currently_visited and not bond.atom.discovered:
                                 print(abbr_bond(bond))
                                 print(map_atom_info.bond)
                                 # looks at all possible ways that match the correct bond
@@ -505,5 +524,6 @@ def hierarchy_check(*libraries):  # TODO need to move this somewhere
 
     print(hierarchy_list)
 
-
+start = time.process_time()
 fragmentize("COC1=NC2=C(C=C1[C@H]([C@@](CCN(C)C)(C3=CC=CC4=C3C=CC=C4)O)C5=CC=CC=C5)C=C(C=C2)Br", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+print(time.process_time() - start)

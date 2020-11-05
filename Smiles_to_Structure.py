@@ -16,6 +16,7 @@ bond_encoder = {
     "/": 6,  # vinyl up
     "\\": 7,  # vinyl down
     ".": 8,  # non-bond
+    "&": 9 # any bond
 }
 
 
@@ -34,15 +35,17 @@ smiles_string_input = "c1ccccc1"
 
 # TODO remove molecule from this func, make it just part of the func
 # TODO add removal of H, [], and @ from string (for now)
-def convert_to_structure(molecule, smiles_string):
+def convert_to_structure(molecule, smiles_string):  # TODO need to make it so you don't need molecule as an arg here @@@@@
 
     corrected_smiles_string = re.sub(r"[\[\]H@]", "", smiles_string)  # TODO need to change this at some point
 
-    for match in re.findall(r"N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s|W|X|Y|Z", corrected_smiles_string):
+    for match in re.findall(r"N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s|R|Q|W|X|Y|Z", corrected_smiles_string):
         molecule.atom_list.append(Atom(match))
         # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
+        # R = any element
+        # Q = any heteratom
 
-    bond_map = re.findall(r"(?:N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s|W|X|Y|Z)([^A-Za-z]*)", corrected_smiles_string)
+    bond_map = re.findall(r"(?:N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s|R|Q|W|X|Y|Z)([^A-Za-z]*)", corrected_smiles_string)
     # ordered list containing all bonding symbol denoting bonding information following each element symbol
     # TODO right now this regex finds R instead of [R], either should remove "[" and "]" from fragment library
     # TODO at some point might need to add comprehension for charged parts i.e [nH4+]
@@ -121,7 +124,7 @@ def convert_to_structure(molecule, smiles_string):
                 if bond.atom.symbol.islower():
                     bond.bond_code = 4
     # smiles strings sometimes use lowercase to denote an aromatic ring
-    # without explicit bond notation, encode_bond will return a 1 (single bond) for bond_code
+    # without explicit bond notation, encode_bond will return a 1 (single bond) for bond.code
     # this loop records the aromatic bonding information for strings with such notation,
     # only counting bonds between two lower case atom symbols
 
