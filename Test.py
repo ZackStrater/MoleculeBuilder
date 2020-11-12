@@ -1,15 +1,14 @@
 
-from fragments_building_library import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids
+test = "C12=CC=CN=C1{cccc}"
+
 import re
+def replace(matchobj):
+    first_edit = re.sub(r"([a-z])", r"\1*", matchobj.group())
+    return re.sub(r"[{}]", r"", first_edit)
+
+print(re.sub(r"({)([a-z]+)(})", replace, test))
 
 
-t = open("test_file.txt", "w")
-libs = [heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids]
-for i in libs:
-    for key in i:
-        t.write("\"" + key + "\":")
-        t.write(" \"" + re.sub(r"\(\[R\]\)|\[R\]", "", i[key]) + "\",")
-        t.write("\n")
-    t.write("\n")
-
-t.close()
+test2 = "C12=CC=CN=C1C=CC=C2}"
+if re.search(r"[{}]", test2):
+    print("yes")

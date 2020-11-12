@@ -31,23 +31,28 @@ def encode_bond(bonding_info):
         return code
 
 
-smiles_string_input = "c1ccccc1"
-
 # TODO remove molecule from this func, make it just part of the func
 # TODO add removal of H, [], and @ from string (for now)
 def convert_to_structure(molecule, smiles_string):  # TODO need to make it so you don't need molecule as an arg here @@@@@
 
     corrected_smiles_string = re.sub(r"[\[\]H@]", "", smiles_string)  # TODO need to change this at some point
+    print(corrected_smiles_string)
+    # if fragment has phantom atoms (signified by portions encapsulated by {}), add an * to each of those atoms
+    if re.search(r"[{}]", corrected_smiles_string):
+        def add_phantom_atoms(matchobj):
+            first_edit = re.sub(r"(N|O|P|Si|S|F|Cl|Br|I|C|B|E|b|c|n|o|p|s)", r"\1*", matchobj.group())
+            return re.sub(r"[{}]", r"", first_edit)
 
-    for match in re.findall(r"N|O|P|Si|S|F|Cl|Br|I|C|B|\[R\]|b|c|n|o|p|s|R|Q|W|X|Y|Z", corrected_smiles_string):
+        corrected_smiles_string = re.sub(r"({)(\S*?)(})", add_phantom_atoms, corrected_smiles_string)
+
+    for match in re.findall(r"N|O|P|Si|S|F|Cl|Br|I|C|B|E|b|c|n|o|p|s|R|Q|W|X|Y|Z", corrected_smiles_string):
         molecule.atom_list.append(Atom(match))
         # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
         # R = any element
         # Q = any heteratom
 
-    bond_map = re.findall(r"(?:N|O|P|Si|S|F|Cl|Br|I|C|B|R|b|c|n|o|p|s|R|Q|W|X|Y|Z)([^A-Za-z]*)", corrected_smiles_string)
+    bond_map = re.findall(r"(?:N|O|P|Si|S|F|Cl|Br|I|C|B|E|b|c|n|o|p|s|R|Q|W|X|Y|Z)([^A-Za-z]*)", corrected_smiles_string)
     # ordered list containing all bonding symbol denoting bonding information following each element symbol
-    # TODO right now this regex finds R instead of [R], either should remove "[" and "]" from fragment library
     # TODO at some point might need to add comprehension for charged parts i.e [nH4+]
     # TODO figure out what to do about H, (i.e. C[@@H] etc.... 
 
@@ -61,6 +66,12 @@ def convert_to_structure(molecule, smiles_string):  # TODO need to make it so yo
         # notice this range includes the last item in the list cause ring closure can be included in last atom
         all_bond_info = (bond_map[i])
         # string with all bonding info for current atom
+
+        # atoms followed by "*" in the string are considered phantom atoms - don't get marked as discovered and
+        # can be found in areas of the molecule that have already been assigned to a fragment
+        if "*" in all_bond_info:
+            molecule.atom_list[i].phantom_atom = True
+
         ring_closure_info = re.findall(r"(\D*[%]\d{2}|\D*\d)", all_bond_info)
         # pulls out all ring #'s and the bond info that proceeds them
 
@@ -129,18 +140,17 @@ def convert_to_structure(molecule, smiles_string):  # TODO need to make it so yo
     # only counting bonds between two lower case atom symbols
 
         for bond in atom.bonded_to:  # TODO add [Z] element to refer to priority bonding
-            if bond.atom.symbol == "[R]":
+            if bond.atom.symbol == "E":
                 atom.can_bond = True
-        # here the [R] atoms represent sites that the fragment can bond
-        # first atom is bonded to element [R], then can_bond for atom changed to True, then delete [R] atoms from
-        # molecule.atom_list and any bonds to [R] atoms
+        # here the E atoms represent sites that the fragment can bond
+        # first atom is bonded to element E, then can_bond for atom changed to True, then delete [R] atoms from
+        # molecule.atom_list and any bonds to E atoms
 
-        atom.bonded_to = [bond for bond in atom.bonded_to if bond.atom.symbol != "[R]"]
-    molecule.atom_list = [atom for atom in molecule.atom_list if atom.symbol != "[R]"]
-    # removing [R] Atom objects and the Bonds to them
+        atom.bonded_to = [bond for bond in atom.bonded_to if bond.atom.symbol != "E"]
+    molecule.atom_list = [atom for atom in molecule.atom_list if atom.symbol != "E"]
+    # removing E Atom objects and the Bonds to them
 
     return molecule
-
 
 
 

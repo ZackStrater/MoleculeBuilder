@@ -11,6 +11,7 @@ class Atom:
         if re.match(r"N|O|P|Si|S|F|Cl|Br|I|B|Q|b|n|o|p|s", self.symbol):
             self.heteroatom = True
         self.discovered = False
+        self.phantom_atom = False
 
 
 class Bond:
@@ -30,7 +31,7 @@ bond_decoder = {   # TODO add chiral stereochemistry
     7: "\\",  # vinyl down
     8: ".",  # non-bond
     9: "&" # any bond
-}
+    }
 
 
 def decode_bond(code):

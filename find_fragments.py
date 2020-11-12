@@ -4,13 +4,15 @@ from termcolor import cprint
 from fragments_library import peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
 import time
 
+
 class AtomData:
     def __init__(self, symbol):
         self.symbol = symbol
         self.bond = None
         self.daughter_branches = []
         self.ring_closures = set()
-        self.phantom_bonds = 0
+        self.phantom_bonds = None
+        self.phantom_atom = False
 
 
 class Branch:
@@ -26,9 +28,8 @@ def abbr_bond(bond):
 def check_bond(bond, map_bond):
     if abbr_bond(bond) == map_bond:
         return True
-    elif map_bond[0] != 9 and map_bond[1] != "Q" and map_bond[1] != "R":
-        return False
-    elif bond.bond_code == map_bond[0]:
+    # need to cover (correct, R) (correct, Q) (9, R) (9, Q) (9, correct)
+    elif bond.bond_code == map_bond[0] or map_bond[0] == 9: # covers (correct, R) (correct, Q) (9, R) (9, Q)
         if map_bond[1] == "R":
             return True
         elif map_bond[1] == "Q" and bond.atom.heteroatom:
@@ -36,8 +37,6 @@ def check_bond(bond, map_bond):
     elif bond.atom.symbol == map_bond[1]:
         if map_bond[0] == 9:
             return True
-    elif map_bond == (9, "Q"):
-        return True
     else:
         return False
 
@@ -53,7 +52,6 @@ def calc_branch_length(branch):
                 add_daughter_branch_length(b)
 
     add_daughter_branch_length(branch)
-    print(branch_length)
     return branch_length
 
 
@@ -94,6 +92,10 @@ def find_fragment(fragment_string, molecule_string, structure=None):
 
             current_atom_data = AtomData(current_atom.symbol)
             # data object for current atom
+
+            # atom_data will reflect that the atom is a phantom_atom
+            if current_atom.phantom_atom:
+                current_atom_data.phantom_atom = True
 
             atom_info_dict[current_atom] = current_atom_data
 
@@ -154,7 +156,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
 
             if not current_branch:
                 return current_atom_data
-                # this returns anchor atom to the map_fragment function @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                # this returns anchor atom to the map_fragment function as the anchor atom is not spawned from a branch @
 
         def new_branch(current_atom, previous_atom, previous_atom_data, bond_code):
             current_branch = Branch((bond_code, current_atom.symbol))
@@ -179,7 +181,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             cprint("ring closures:", "yellow")
             for num in anchor_atom.ring_closures:
                 cprint(num, "blue")
-        if anchor_atom.phantom_bonds > 0:
+        if anchor_atom.phantom_bonds:
             print("phantom bonds = ", end="")
             print(anchor_atom.phantom_bonds)
 
@@ -198,9 +200,9 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                         cprint("ring closures:", "yellow")
                         for num in atom_info.ring_closures:
                             cprint(num, "blue")
-                    if atom_map.phantom_bonds > 0:
+                    if atom_info.phantom_bonds:
                         print("phantom bonds = ", end="")
-                        print(anchor_atom.phantom_bonds)
+                        print(atom_info.phantom_bonds)
                     if atom_info.bond:
                         print(atom_info.bond)
                     if len(atom_info.daughter_branches) > 0:
@@ -255,16 +257,17 @@ def find_fragment(fragment_string, molecule_string, structure=None):
     print("\n")
 
     def check_anchor_atom(potential_anchor_atom, fragment_map):
-        molecule_atoms = {potential_anchor_atom}
+        molecule_atoms = {potential_anchor_atom}  # TODO is this not needed? just use currently visited???
         # list to keep track of which atoms in the molecule constitute a matched fragment
 
-        currently_visited = {potential_anchor_atom: fragment_map.ring_closures}
+        currently_visited = {potential_anchor_atom: fragment_map}
         # dictionary that keeps track of which atoms have been used to find the fragment at any given step
 
         def check_branch_point(current_molecule_atom, previous_molecule_atom, map_atom_info, branch_atoms):
-            if map_atom_info.phantom_bonds > 0:
+            if map_atom_info.phantom_bonds:
                 bond_num = len(current_molecule_atom.bonded_to)
                 if bond_num != map_atom_info.phantom_bonds:
+                    cprint("wrong amount of phantom bonds", "red")
                     return False
             # phantom_bonds is a way to ensure the current atom is bonded to the specified number of atoms
             # note that phantom bonds includes any bonds for the current molecule_atom, including those to atoms that are "discovered"
@@ -313,8 +316,6 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                             break
                             # need to stop the for loop so it doesn't search the matched branch in further trial_paths
                         else:
-                            for a in branch_point_atoms:
-                                currently_visited.pop(a, None)
                             cprint("branch not successful", "red")
 
             if all(value is True for value in branch_check.values()):
@@ -323,7 +324,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                     branch_atoms.update(branch_point_atoms)
                 else:
                     molecule_atoms.update(branch_point_atoms)
-                    # first branch point does not have a branch that spawned it @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    # first branch point does not have a branch that spawned it @
                 return True
                 # if all branches have been found, they will be True in branch_check, branch point is a match, return True
             else:
@@ -346,14 +347,14 @@ def find_fragment(fragment_string, molecule_string, structure=None):
         def check_ring_closure(current_atom, atom_info):  # already check if atom_info has ring closure
             ring_closures = set()  # all the ring closure numbers in currently_visited
             for value in currently_visited.values():
-                ring_closures.update(value)
+                ring_closures.update(value.ring_closures)
 
             for closure_info in atom_info.ring_closures:  # checking each ring closure atom has
                 print("ring closure")
                 print(closure_info)
                 if closure_info in ring_closures:  # we've already hit the other half of the ring closure
                     for key in currently_visited:  # looking for matching ring closure
-                        if closure_info in currently_visited[key]:  # matched ring closure, key = atom it should be bonded to
+                        if closure_info in currently_visited[key].ring_closures:  # matched ring closure, key = atom it should be bonded to
                             ring_closure_partner = key
 
                             if ring_closure_partner in [bond.atom for bond in current_atom.bonded_to]:
@@ -377,31 +378,32 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             cprint("checking atom", "yellow")
             print(current_molecule_atom.symbol)
             nonlocal currently_visited
-            map_atom_info = branch_sequence[index]
+            current_atom_info = branch_sequence[index]
 
-            if map_atom_info.phantom_bonds > 0:
+            if current_atom_info.phantom_bonds:
                 bond_num = len(current_molecule_atom.bonded_to)
-                if bond_num != map_atom_info.phantom_bonds:
+                if bond_num != current_atom_info.phantom_bonds:
+                    cprint("wrong amount of phantom bonds", "red")
                     return False
 
-            if map_atom_info.ring_closures:
-                if not check_ring_closure(current_molecule_atom, map_atom_info):
+            if current_atom_info.ring_closures:
+                if not check_ring_closure(current_molecule_atom, current_atom_info):
                     return False
 
-            currently_visited[current_molecule_atom] = map_atom_info.ring_closures
+            currently_visited[current_molecule_atom] = current_atom_info
             for a in currently_visited:
                 print(a.symbol, end="")
-                if currently_visited[a]:
-                    print(currently_visited[a], end="")
+                if currently_visited[a].ring_closures:
+                    print(currently_visited[a].ring_closures, end="")
             print("\n")
 
             branch_atoms.add(current_molecule_atom)
-            if len(map_atom_info.daughter_branches) > 0:
+            if len(current_atom_info.daughter_branches) > 0:
                 # atom is branch point and need to check branches
-                return check_branch_point(current_molecule_atom, previous_molecule_atom, map_atom_info, branch_atoms)
+                return check_branch_point(current_molecule_atom, previous_molecule_atom, current_atom_info, branch_atoms)
             else:
                 # atom is either an endpoint or contiguous segment:
-                if not map_atom_info.bond:
+                if not current_atom_info.bond:
                     cprint("reached branch end", "blue")
 
                     # if no bond data, means we have matched the entire branch, return True
@@ -415,9 +417,9 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                         return False
                     elif len(unchecked_bonds) == 1:
                         # actual molecule only has a contiguous segment here
-                        print(map_atom_info.bond)
+                        print(current_atom_info.bond)
                         print(abbr_bond(unchecked_bonds[0]))
-                        if map_atom_info.bond == abbr_bond(unchecked_bonds[0]) and unchecked_bonds[0].atom not in currently_visited and not unchecked_bonds[0].atom.discovered:
+                        if check_bond(unchecked_bonds[0], current_atom_info.bond) and unchecked_bonds[0].atom not in currently_visited and not unchecked_bonds[0].atom.discovered:
                             return check_atom_bonds(unchecked_bonds[0].atom, current_molecule_atom, branch_sequence, index + 1, branch_atoms)  # check next atom
                             # all branches should either return a function, True, or False.  All child functions should do the same
                             # uncheck_bonds[0].atom becomes new current_molecule_atom, current_molecule_atom becomes previous_molecule_atom
@@ -431,12 +433,12 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                         cprint("checking multiple paths for branch", "yellow")
                         # check all ways
                         for bond in unchecked_bonds:
-                            if map_atom_info.bond != abbr_bond(bond):  # this is purely for seeing what's happening
+                            if current_atom_info.bond != abbr_bond(bond):  # this is purely for seeing what's happening
                                 print(abbr_bond(bond))
-                                print(map_atom_info.bond)
-                            if check_bond(bond, map_atom_info.bond) and bond.atom not in currently_visited and not bond.atom.discovered:
+                                print(current_atom_info.bond)
+                            if check_bond(bond, current_atom_info.bond) and bond.atom not in currently_visited and not bond.atom.discovered:
                                 print(abbr_bond(bond))
-                                print(map_atom_info.bond)
+                                print(current_atom_info.bond)
                                 # looks at all possible ways that match the correct bond
                                 midway_fork = set()
                                 # need to separate the branch_atoms here since we don't know if any of the paths will work
@@ -454,10 +456,24 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                         # then none of the paths are productive, return false
 
         if check_branch_point(potential_anchor_atom, None, fragment_map, None):
-            for atom in molecule_atoms:
-                atom.discovered = True
+            print("phantom atom check")
+            for atom in currently_visited:
+                if not currently_visited[atom].phantom_atom:
+                    atom.discovered = True
+                else:
+                    print("this atom should not be counted")
+
+            # running checks
             cprint("number of atoms in fragment: ", "yellow", end="")
             print(len(molecule_atoms))
+            cprint("number of atoms in currently_visited", "yellow", end="")
+            print(len(currently_visited))
+            if (len(molecule_atoms)) != len(currently_visited):
+                cprint("error in number of atoms found", "red")
+            for atom in molecule_atoms:
+                if atom not in currently_visited:
+                    cprint("error: descrepancy between currently_visited and molecule_atoms", "red")
+
             for atom in molecule_atoms:
                 print(atom.symbol)
             cprint("matched fragment to anchor atom", "magenta")
@@ -493,6 +509,7 @@ def fragmentize(molecule_string, *fragment_libraries):
     for lib in fragment_libraries:
         for frag in lib:
             for frag_res_structure in lib[frag]:
+                print("\n\n")
                 cprint(frag, "magenta")
                 for f in range(find_fragment(frag_res_structure, None, molecular_structure)):
                     fragments.append(frag)
@@ -525,5 +542,9 @@ def hierarchy_check(*libraries):  # TODO need to move this somewhere
     print(hierarchy_list)
 
 start = time.process_time()
-fragmentize("COC1=NC2=C(C=C1[C@H]([C@@](CCN(C)C)(C3=CC=CC4=C3C=CC=C4)O)C5=CC=CC=C5)C=C(C=C2)Br", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+fragmentize("FC(F)(C1=CC(N2CCN(CC2)CCOC(C3=CC=CC=C3NC4=C5C=CC(C(F)(F)F)=CC5=NC=C4)=O)=CC=C1)F", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
 print(time.process_time() - start)
+
+
+
+#COC1=NC2=C(C=C1[C@H]([C@@](O)(CCN(C)C)C3=CC=CC4=C3C=CC=C4)C5=CC=CC=C5)C=C(C=C2)Br
