@@ -136,6 +136,7 @@ functional_groups = {
     "acetoxy": ["WCC(OX)=O"],
     "methyl ester": ["O=COCW"],
     "ethyl ester": ["O=COC(X)CW"],
+    "benzoic acid": ["{OC(C1=CC=CC=C1)=O}"],
     "ester": ["O=COX"],
     "amide": ["NC(=O)Y"],
     "sulfonic acid": ["O=S(O)=O"],

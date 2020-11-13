@@ -2,7 +2,6 @@ from Smiles_to_Structure import convert_to_structure, MoleculeStructure
 from collections import Counter
 from termcolor import cprint
 from fragments_library import peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
-import time
 
 
 class AtomData:
@@ -25,7 +24,14 @@ def abbr_bond(bond):
     return bond.bond_code, bond.atom.symbol
 
 
-def check_bond(bond, map_bond):
+def check_bond(bond, map_bond, bond_atom_info):  # bond_atom_info is the atom_info of the atom for the bond being checked (to see if it's a phantom bond/discovered)
+
+    # if the bond.atom is discovered already, it should give back false (can't retread over discovered atoms)
+    # unless the atom_info for that atom shows that the bond.atom should be a phantom atom (which can be searched for in discovered atoms)
+    if bond.atom.discovered:
+        if not bond_atom_info.phantom_atom:
+            return False
+
     if abbr_bond(bond) == map_bond:
         return True
     # need to cover (correct, R) (correct, Q) (9, R) (9, Q) (9, correct)
@@ -71,6 +77,48 @@ def find_fragment(fragment_string, molecule_string, structure=None):
 
     fragment_anchor_atom = find_anchor_atom(fragment_structure)
     # the actual atom object of highest priority in the fragment structure
+
+    def is_potential_anchor(atom, fragment_anchor_atom, atom_list):
+        # searches through all atoms in molecules in total_molecule to see if they match the fragment base atom
+        # atom -> current atom its checking
+        # atom_list is list where potential anchor atoms are stored
+        # fragment_anchor_atom is the actual atom object from the fragment structure
+
+        if atom.discovered and not fragment_anchor_atom.phantom_atom:  # if fragment_anchor atom is a phantom atom, it can use discovered atoms as potential anchors
+            return
+        # atom has already been used to find a fragment
+
+        if atom.symbol != fragment_anchor_atom.symbol:
+            return
+            # check to see if atom is the same element
+
+        fragment_anchor_atom_bonds = Counter([abbr_bond(bond) for bond in fragment_anchor_atom.bonded_to])
+        # count bonds from anchor atom
+
+        atom_bonds = Counter([abbr_bond(bond) for bond in atom.bonded_to])
+        # count bonds in potential anchor atom where the bond's atom haven't been discovered yet (as we won't be able to use those bonds)
+        for key in fragment_anchor_atom_bonds:
+            if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:
+                # check 1: are there bonds types in fragment base atom that current atom doesn't have
+                # check 2: does current atom have >= the amount of each bond type compared to fragment base atom
+                # i.e. are the bonds in fragment anchor atom a subset of the bonds of current atom
+                return
+        atom_list.append(atom)
+        # if all checks passed, atom is a potential base atom and is  stored in a list
+
+    potential_anchor_atoms = []
+    # keeping track of atoms that match fragment base atom
+    for atom in molecule_structure.atom_list:
+        is_potential_anchor(atom, fragment_anchor_atom, potential_anchor_atoms)
+
+    if potential_anchor_atoms == []:
+        return 0
+    else:
+        print("potential anchor atoms: ")
+        for atom in potential_anchor_atoms:
+            print(atom.symbol)
+            for bond in atom.bonded_to:
+                print(abbr_bond(bond))
 
     def map_fragment(fragment, anchor_atom):  # TODO probably want to run potential anchor checks before mapping fragment
 
@@ -215,47 +263,6 @@ def find_fragment(fragment_string, molecule_string, structure=None):
     expand_map(anchored_fragment_map)
     print("\n")
 
-    def is_potential_anchor(atom, fragment_anchor_atom, atom_list):
-        # searches through all atoms in molecules in total_molecule to see if they match the fragment base atom
-        # atom -> current atom its checking
-        # atom_list is list where potential anchor atoms are stored
-        # fragment_anchor_atom is the actual atom object from the fragment structure
-
-        if atom.discovered:
-            return
-        # atom has already been used to find a fragment
-
-        if atom.symbol != fragment_anchor_atom.symbol:
-            return
-            # check to see if atom is the same element
-
-        fragment_anchor_atom_bonds = Counter([abbr_bond(bond) for bond in fragment_anchor_atom.bonded_to])
-        # count bonds from anchor atom
-
-        atom_bonds = Counter([abbr_bond(bond) for bond in atom.bonded_to if not bond.atom.discovered])
-        # count bonds in potential anchor atom where the bond's atom haven't been discovered yet (as we won't be able to use those bonds)
-        for key in fragment_anchor_atom_bonds:
-            if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:
-                # check 1: are there bonds types in fragment base atom that current atom doesn't have
-                # check 2: does current atom have >= the amount of each bond type compared to fragment base atom
-                # i.e. are the bonds in fragment anchor atom a subset of the bonds of current atom
-                return
-        atom_list.append(atom)
-        # if all checks passed, atom is a potential base atom and is  stored in a list
-
-    potential_anchor_atoms = []
-    # keeping track of atoms that match fragment base atom
-    for atom in molecule_structure.atom_list:
-        is_potential_anchor(atom, fragment_anchor_atom, potential_anchor_atoms)
-
-    for atom in potential_anchor_atoms:
-        print("potential anchor: ")
-        print(atom.symbol)
-        for bond in atom.bonded_to:
-            print(abbr_bond(bond))
-
-    print("\n")
-
     def check_anchor_atom(potential_anchor_atom, fragment_map):
         molecule_atoms = {potential_anchor_atom}  # TODO is this not needed? just use currently visited???
         # list to keep track of which atoms in the molecule constitute a matched fragment
@@ -304,7 +311,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             for branch in map_atom_info.daughter_branches:
                 # take each branch
                 for bond in trial_paths:
-                    if check_bond(bond, branch.bond) and bond not in checked_paths and bond.atom not in currently_visited and not bond.atom.discovered:
+                    if check_bond(bond, branch.bond, branch.sequence[0]) and bond not in checked_paths and bond.atom not in currently_visited:
                         # if the bond to the branch matches the current bond (and the current bond hasn't already been used to identify a branch):
                         if try_branch(branch.sequence, bond.atom, current_molecule_atom, branch_point_atoms):
                             # test to see if the current branch works on this bond path
@@ -419,7 +426,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                         # actual molecule only has a contiguous segment here
                         print(current_atom_info.bond)
                         print(abbr_bond(unchecked_bonds[0]))
-                        if check_bond(unchecked_bonds[0], current_atom_info.bond) and unchecked_bonds[0].atom not in currently_visited and not unchecked_bonds[0].atom.discovered:
+                        if check_bond(unchecked_bonds[0], current_atom_info.bond, branch_sequence[index + 1]) and unchecked_bonds[0].atom not in currently_visited:
                             return check_atom_bonds(unchecked_bonds[0].atom, current_molecule_atom, branch_sequence, index + 1, branch_atoms)  # check next atom
                             # all branches should either return a function, True, or False.  All child functions should do the same
                             # uncheck_bonds[0].atom becomes new current_molecule_atom, current_molecule_atom becomes previous_molecule_atom
@@ -436,7 +443,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                             if current_atom_info.bond != abbr_bond(bond):  # this is purely for seeing what's happening
                                 print(abbr_bond(bond))
                                 print(current_atom_info.bond)
-                            if check_bond(bond, current_atom_info.bond) and bond.atom not in currently_visited and not bond.atom.discovered:
+                            if check_bond(bond, current_atom_info.bond, branch_sequence[index + 1]) and bond.atom not in currently_visited:
                                 print(abbr_bond(bond))
                                 print(current_atom_info.bond)
                                 # looks at all possible ways that match the correct bond
@@ -459,6 +466,8 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             print("phantom atom check")
             for atom in currently_visited:
                 if not currently_visited[atom].phantom_atom:
+                    # using currently visited to see if the atom_data that was used to find that atom was marked as a phantom_atom
+                    # if it is a phantom atom, don't mark as discovered
                     atom.discovered = True
                 else:
                     print("this atom should not be counted")
@@ -541,10 +550,19 @@ def hierarchy_check(*libraries):  # TODO need to move this somewhere
 
     print(hierarchy_list)
 
+import time
+
+from timeit import default_timer as timer
+
+
+starter = timer()
 start = time.process_time()
 fragmentize("FC(F)(C1=CC(N2CCN(CC2)CCOC(C3=CC=CC=C3NC4=C5C=CC(C(F)(F)F)=CC5=NC=C4)=O)=CC=C1)F", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+print("time:")
 print(time.process_time() - start)
-
-
+ender = timer()
+print("timeit:")
+print(ender - starter)
 
 #COC1=NC2=C(C=C1[C@H]([C@@](O)(CCN(C)C)C3=CC=CC4=C3C=CC=C4)C5=CC=CC=C5)C=C(C=C2)Br
+
