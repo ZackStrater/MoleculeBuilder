@@ -11,6 +11,7 @@ class Atom:
         if re.match(r"N|O|P|Si|S|F|Cl|Br|I|B|Q|b|n|o|p|s", self.symbol):
             self.heteroatom = True
         self.discovered = False
+        self.phantom_bonds = None
         self.phantom_atom = False
 
 

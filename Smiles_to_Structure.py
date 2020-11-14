@@ -36,11 +36,10 @@ def encode_bond(bonding_info):
 def convert_to_structure(molecule, smiles_string):  # TODO need to make it so you don't need molecule as an arg here @@@@@
 
     corrected_smiles_string = re.sub(r"[\[\]H@]", "", smiles_string)  # TODO need to change this at some point
-    print(corrected_smiles_string)
     # if fragment has phantom atoms (signified by portions encapsulated by {}), add an * to each of those atoms
     if re.search(r"[{}]", corrected_smiles_string):
         def add_phantom_atoms(matchobj):
-            first_edit = re.sub(r"(N|O|P|Si|S|F|Cl|Br|I|C|B|E|b|c|n|o|p|s)", r"\1*", matchobj.group())
+            first_edit = re.sub(r"(N|O|P|Si|S|F|Cl|Br|I|C|B|b|c|n|o|p|s)", r"\1*", matchobj.group())
             return re.sub(r"[{}]", r"", first_edit)
 
         corrected_smiles_string = re.sub(r"({)(\S*?)(})", add_phantom_atoms, corrected_smiles_string)
@@ -129,6 +128,9 @@ def convert_to_structure(molecule, smiles_string):  # TODO need to make it so yo
                     for c in range(parentheses_count):
                         left_parens_list.pop()
 
+    phantom_bonds_dict = {"W": 1, "X": 2, "Y": 3, "Z": 4}
+    # used to decipher number of phantom bonds on atom
+
     for atom in molecule.atom_list:
         if atom.symbol.islower():
             for bond in atom.bonded_to:
@@ -139,17 +141,19 @@ def convert_to_structure(molecule, smiles_string):  # TODO need to make it so yo
     # this loop records the aromatic bonding information for strings with such notation,
     # only counting bonds between two lower case atom symbols
 
-        for bond in atom.bonded_to:  # TODO add [Z] element to refer to priority bonding
+        for bond in atom.bonded_to:
             if bond.atom.symbol == "E":
                 atom.can_bond = True
-        # here the E atoms represent sites that the fragment can bond
-        # first atom is bonded to element E, then can_bond for atom changed to True, then delete [R] atoms from
-        # molecule.atom_list and any bonds to E atoms
+                # here the E atoms represent sites that the fragment can bond
+                # first atom is bonded to element E, then can_bond for atom changed to True, then delete [R] atoms from
+                # molecule.atom_list and any bonds to E atoms
 
-        atom.bonded_to = [bond for bond in atom.bonded_to if bond.atom.symbol != "E"]
-    molecule.atom_list = [atom for atom in molecule.atom_list if atom.symbol != "E"]
-    # removing E Atom objects and the Bonds to them
-
+            if bond.atom.symbol in phantom_bonds_dict:
+                atom.phantom_bonds = phantom_bonds_dict[bond.atom.symbol]
+            # phantom bonds allows checking number of bonds atom should have without traversing to those atoms
+            # for distinguishing between carboxylic acid and ester, or between primary, secondary, tertiary amines
+        atom.bonded_to = [bond for bond in atom.bonded_to if bond.atom.symbol != "E" and bond.atom.symbol not in phantom_bonds_dict]
+    molecule.atom_list = [atom for atom in molecule.atom_list if atom.symbol != "E" and atom.symbol not in phantom_bonds_dict]
     return molecule
 
 

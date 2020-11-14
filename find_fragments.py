@@ -93,12 +93,15 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             # check to see if atom is the same element
 
         fragment_anchor_atom_bonds = Counter([abbr_bond(bond) for bond in fragment_anchor_atom.bonded_to])
+        print(fragment_anchor_atom_bonds)
         # count bonds from anchor atom
 
         atom_bonds = Counter([abbr_bond(bond) for bond in atom.bonded_to])
+        print(atom_bonds)
+        print("\n")
         # count bonds in potential anchor atom where the bond's atom haven't been discovered yet (as we won't be able to use those bonds)
         for key in fragment_anchor_atom_bonds:
-            if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:
+            if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:  # TODO this does not take into account R and Q, need to change to check bond mb???
                 # check 1: are there bonds types in fragment base atom that current atom doesn't have
                 # check 2: does current atom have >= the amount of each bond type compared to fragment base atom
                 # i.e. are the bonds in fragment anchor atom a subset of the bonds of current atom
@@ -112,6 +115,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
         is_potential_anchor(atom, fragment_anchor_atom, potential_anchor_atoms)
 
     if potential_anchor_atoms == []:
+        cprint("no anchor atoms found", "yellow")
         return 0
     else:
         print("potential anchor atoms: ")
@@ -132,9 +136,6 @@ def find_fragment(fragment_string, molecule_string, structure=None):
 
         ring_closure_counter = 1
 
-        phantom_bonds_dict = {"W": 1, "X": 2, "Y": 3, "Z": 4}
-        # used to decipher number of phantom bonds on atom
-
         def traverse(current_atom, previous_atom, current_branch):
             visited[current_atom] = True
 
@@ -152,12 +153,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
                 # append atom info to branch sequence
                 # if current_branch b/c first atom does not have a branch
 
-            for bond in current_atom.bonded_to:
-                if bond.atom.symbol in phantom_bonds_dict:
-                    current_atom_data.phantom_bonds = phantom_bonds_dict[bond.atom.symbol]
-                    current_atom.bonded_to.remove(bond)
-            # phantom bonds allows checking number of bonds atom should have without traversing to those atoms
-            # for distinguishing between carboxylic acid and ester, or between primary, secondary, tertiary amines
+            current_atom_data.phantom_bonds = current_atom.phantom_bonds
 
             unchecked_bonds = [bond for bond in current_atom.bonded_to if bond.atom != previous_atom]
 
@@ -557,12 +553,11 @@ from timeit import default_timer as timer
 
 starter = timer()
 start = time.process_time()
-fragmentize("FC(F)(C1=CC(N2CCN(CC2)CCOC(C3=CC=CC=C3NC4=C5C=CC(C(F)(F)F)=CC5=NC=C4)=O)=CC=C1)F", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+fragmentize("CC(O[C@H](C/C=C/CC(CCC)CC/C=C/C1=CN=CC=C1)CC)=O", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
 print("time:")
 print(time.process_time() - start)
 ender = timer()
 print("timeit:")
 print(ender - starter)
 
-#COC1=NC2=C(C=C1[C@H]([C@@](O)(CCN(C)C)C3=CC=CC4=C3C=CC=C4)C5=CC=CC=C5)C=C(C=C2)Br
 
