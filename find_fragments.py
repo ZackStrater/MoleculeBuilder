@@ -93,19 +93,19 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             # check to see if atom is the same element
 
         fragment_anchor_atom_bonds = Counter([abbr_bond(bond) for bond in fragment_anchor_atom.bonded_to])
-        print(fragment_anchor_atom_bonds)
         # count bonds from anchor atom
 
         atom_bonds = Counter([abbr_bond(bond) for bond in atom.bonded_to])
-        print(atom_bonds)
-        print("\n")
+
         # count bonds in potential anchor atom where the bond's atom haven't been discovered yet (as we won't be able to use those bonds)
         for key in fragment_anchor_atom_bonds:
-            if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:  # TODO this does not take into account R and Q, need to change to check bond mb???
-                # check 1: are there bonds types in fragment base atom that current atom doesn't have
-                # check 2: does current atom have >= the amount of each bond type compared to fragment base atom
-                # i.e. are the bonds in fragment anchor atom a subset of the bonds of current atom
-                return
+            print(key)
+            if key[1] != "R" and key[1] != "Q" and key[0] != 9:  # TODO better way to do this???
+                if key not in atom_bonds or fragment_anchor_atom_bonds[key] > atom_bonds[key]:
+                    # check 1: are there bonds types in fragment base atom that current atom doesn't have
+                    # check 2: does current atom have >= the amount of each bond type compared to fragment base atom
+                    # i.e. are the bonds in fragment anchor atom a subset of the bonds of current atom
+                    return
         atom_list.append(atom)
         # if all checks passed, atom is a potential base atom and is  stored in a list
 
@@ -124,7 +124,7 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             for bond in atom.bonded_to:
                 print(abbr_bond(bond))
 
-    def map_fragment(fragment, anchor_atom):  # TODO probably want to run potential anchor checks before mapping fragment
+    def map_fragment(fragment, anchor_atom):
 
         visited = {}
         for atom in fragment.atom_list:
@@ -291,9 +291,10 @@ def find_fragment(fragment_string, molecule_string, structure=None):
             print(fragment_branch_point_bonds)
             # subset check on branch point, just to make sure current atom has all the bonds the fragment branchpoint has
             for key in fragment_branch_point_bonds:
-                if key not in unchecked_bonds or fragment_branch_point_bonds[key] > unchecked_bonds[key]:
-                    cprint("branch point doesn't contain necessary bonds", "red")
-                    return False
+                if key[1] != "R" and key[1] != "Q" and key[0] != 9:  # TODO better way to do this?
+                    if key not in unchecked_bonds or fragment_branch_point_bonds[key] > unchecked_bonds[key]:
+                        cprint("branch point doesn't contain necessary bonds", "red")
+                        return False
 
             branch_check = {}
             for branch in map_atom_info.daughter_branches:
@@ -553,7 +554,7 @@ from timeit import default_timer as timer
 
 starter = timer()
 start = time.process_time()
-fragmentize("CC(O[C@H](C/C=C/CC(CCC)CC/C=C/C1=CN=CC=C1)CC)=O", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+fragmentize("CC(O/C(C/C=C/C=C(\C=C/C)CCC=C)=C/C)=O", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
 print("time:")
 print(time.process_time() - start)
 ender = timer()

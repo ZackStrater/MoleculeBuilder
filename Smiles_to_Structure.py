@@ -39,7 +39,7 @@ def convert_to_structure(molecule, smiles_string):  # TODO need to make it so yo
     # if fragment has phantom atoms (signified by portions encapsulated by {}), add an * to each of those atoms
     if re.search(r"[{}]", corrected_smiles_string):
         def add_phantom_atoms(matchobj):
-            first_edit = re.sub(r"(N|O|P|Si|S|F|Cl|Br|I|C|B|b|c|n|o|p|s)", r"\1*", matchobj.group())
+            first_edit = re.sub(r"(N|O|P|Si|S|F|Cl|Br|I|C|B|R|Q|b|c|n|o|p|s)", r"\1*", matchobj.group())
             return re.sub(r"[{}]", r"", first_edit)
 
         corrected_smiles_string = re.sub(r"({)(\S*?)(})", add_phantom_atoms, corrected_smiles_string)

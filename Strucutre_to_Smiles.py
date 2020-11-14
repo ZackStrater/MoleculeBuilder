@@ -8,7 +8,7 @@ class Atom:
         self.bonded_to = []
         self.can_bond = False
         self.heteroatom = False
-        if re.match(r"N|O|P|Si|S|F|Cl|Br|I|B|Q|b|n|o|p|s", self.symbol):
+        if self.symbol not in ["C", "c", "H"]:
             self.heteroatom = True
         self.discovered = False
         self.phantom_bonds = None
