@@ -1,18 +1,20 @@
 
 # TODO need to introduce a system to check anonymous heterocycles and polycyclic systems
-# TODO have an element that can represent any element, have bond that can represent any bond
 
 # TODO maybe add system where atom has a fragemnt attribute (so you can tell if a nitrogen is conjugated for example)
 
-# TODO add special instructions for certain structures
-# TODO could replace current system of phantom bonds
-# TODO could tell it to make sure X atom has however many bonds connected to whatever  (i.e. to see whether an acyl group is connected to a nitrogen)
 # could also check for CIS/Trans, and check for conjugation
 
 # TODO may need to distinguish between susbistuted amine heterocycles (i.e. methyl piperidine and piperidine)
 
+
+biomolecules = {
+    "pyranose": ["OCC1OCC(O)C(O)C1O"],
+    "pentose": ["OC1C(O)C(CO)OC1CO"]
+    }
+
 peptide_amino_acids = {
-    "Methionine": ["NC(C=O)CCSC"],
+    "Methionine": ["NC(C=O)CCSCW"],
     "Tyrosine": ["NC(C=O)CC1=CC=C(O)C=C1"],
     "Phenylalanine": ["NC(C=O)CC1=CC=CC=C1", "NC(C=O)Cc1ccccc1"],
     "Tryptophan": ["NC(CC1=CNC2=CC=CC=C12)C=O", "NC(C=O)CC1=CNC2=C1C=CC=C2", "NC(Cc1cnc2ccccc12)C=O"],
@@ -23,7 +25,7 @@ peptide_amino_acids = {
     "Aspartic Acid": ["NC(C=O)CC(O)=O"],
     "Glutamic Acid": ["NC(C=O)CCC(O)=O"],
     "Histidine": ["NC(C=O)CC1=CNC=N1", "NC(CC1=CN=CN1)C=O", "NC(C=O)Cc1cncc1"],
-    "Arginine": ["NC(C=O)CCCNC(N)=N"],
+    "Arginine": ["NC(C=O)CCCNC(N)=N", "NC(CCCN=C(N)N)C=O", "NC(C=O)CCC/N=C(N)/N", r"NC(C=O)CCC\N=C(N)\N", r"O=C[C@@H](CCC/N=C(N)\N)N", r"O=C[C@@H](CCC\N=C(N)/N)N"],
     "Tert-Leucine": ["NC(C=O)C(C)(C)C"],
     "Cyclopropyl-Glycine": ["NC(C=O)C1CC1"],
     "Pyroglutamic acid": ["C(C(CC1)NC1=O)=O"],
@@ -31,10 +33,11 @@ peptide_amino_acids = {
     "Isoleucine": ["NC(C(CC)C)C=O"],
     "Valine": ["NC(C=O)C(C)C"],
     "Leucine": ["NC(C=O)CC(C)C"],
-    "Threonine": ["NC(C=O)[C@@H](C)O"],
+    "Threonine": ["NC(C=O)C(C)O"],
     "Serine": ["NC(C=O)CO"],
     "Alanine": ["NC(C=O)CW"],
-    "Glycine": ["NCC=O"],
+    "substituted Glycine": ["NC(Y)C=O", "NC(Z)C=O"],
+    "Glycine": ["NC(X)C=O"],
     }
 
 heterocycles = {
@@ -69,9 +72,21 @@ heterocycles = {
     "coumarin": ["O=C1C=CC2=CC=CC=C2O1", "O=C(O1)C=CC2=C1C=CC=C2", "O=C(C=C1)Oc2c1cccc2"],
     "quinolinone": ["O=C1C=CC2=CC=CC=C2N1", "O=C(N1)C=CC2=C1C=CC=C2", "O=C(N1)C=Cc2c1cccc2"],
     "isoquinolinone": ["O=C1NC=CC2=CC=CC=C21", "O=C1NC=CC2=C1C=CC=C2", "O=C1NC=Cc2c1cccc2"],
+    "pyrazole": ["N1C=CC=N1", "n1cccn1"],
+    "imidazole": ["C1=NC=CN1", "c1nccn1"],
+    "pyridazine": ["C1=NN=CC=C1", "C1=CC=CN=N1", "c1nnccc1"],
+    "pyrimidine": ["C1=NC=CC=N1", "c1ncccn1"],
+    "pyrazine": ["C1=CN=CC=N1", "c1cnccn1"],
+    "1,2,4-traizole": ["C1=NNC=N1", "C1=NN=CN1", "c1nncn1"],
+    "1,2,3-triazole": ["N1N=NC=C1", "n1nncc1"],
+    "1,2,3-triazine": ["C1=NN=CC=N1", "N1=NC=NC=C1", "c1nnccn1"],
+    "1,3,5-triazine": ["C1=NC=NC=N1", "c1ncncn1"],
+    "furan": ["C1=CC=CO1", "c1ccco1"],
+    "chromane": ["C12=CC=CC=C1OCCC2", "C1(CCCO2)=C2C=CC=C1", "c12ccccc1OCCC2"],
     "thiophene": ["C1=CC=CS1", "c1cccs1"],
     "oxazole": ["C1=NC=CO1", "c1ncco1"],
     "thiazole": ["C1=CN=CS1", "c1cncs1"],
+    "pyridine": ["C1=CC=CC=N1", "c1ccccn1"],
     "caprolactam": ["O=C1NCCCCC1"],
     "piperazine": ["N1CCNCC1"],
     "hydantoin": ["O=C1NCC(N1)=O"],
@@ -88,18 +103,6 @@ heterocycles = {
     "pyrrole": ["N1C=CC=C1", "n1cccc1"],
     "pyrazolidine": ["N1NCCC1"],
     "piperidine": ["C1CCNCC1"],
-    "pyridine": ["C1=CC=CC=N1", "c1ccccn1"],
-    "pyrazole": ["N1C=CC=N1", "n1cccn1"],
-    "imidazole": ["C1=NC=CN1", "c1nccn1"],
-    "pyridazine": ["C1=NN=CC=C1", "C1=CC=CN=N1", "c1nnccc1"],
-    "pyrimidine": ["C1=NC=CC=N1", "c1ncccn1"],
-    "pyrazine": ["C1=CN=CC=N1", "c1cnccn1"],
-    "1,2,4-traizole": ["C1=NNC=N1", "C1=NN=CN1", "c1nncn1"],
-    "1,2,3-triazole": ["N1N=NC=C1", "n1nncc1"],
-    "1,2,3-triazine": ["C1=NN=CC=N1", "N1=NC=NC=C1", "c1nnccn1"],
-    "1,3,5-triazine": ["C1=NC=NC=N1", "c1ncncn1"],
-    "furan": ["C1=CC=CO1", "c1ccco1"],
-    "chromane": ["C12=CC=CC=C1OCCC2", "C1(CCCO2)=C2C=CC=C1", "c12ccccc1OCCC2"],
     }
 
 arenes = {
@@ -111,6 +114,7 @@ arenes = {
     }
 
 functional_groups = {
+    "tetrahydropyran": ["C1CCCCO1"],
     "tetrahydrofuran": ["C1CCCO1"],
     "cyclohexanone": ["O=C1CCCCC1"],
     "cyclohexenone": ["O=C1C=CCCC1"],
@@ -123,6 +127,7 @@ functional_groups = {
     "Urea": ["O=C(N)N"],
     "Thiourea": ["S=C(N)N"],
     "carbamate": ["O=C(N)O"],
+    "carbamyl": ["O=C({N})O"],
     "Cyano": ["C#N"],
     "trifluoromethyl": ["C(F)(F)F"],
     "difluoromethyl": ["C(F)F"],
@@ -134,13 +139,18 @@ functional_groups = {
     "sulfonamide": ["O=S(N)=O"],
     "carboxylic acid": ["O=COW"],
     "acetoxy": ["WCC(OX)=O"],
-    "methyl ester": ["O=COCW"],
-    "ethyl ester": ["O=COC(X)CW"],
-    "ester": ["O=COX"],
-    "amide": ["NC(=O)Y"],
+    "methyl ester": ["O=C({C})OCW"],
+    "ethyl ester": ["O=C({C})OC(X)CW"],
+    "ester": ["O=C({C})OX"],
+    "formamide": ["NC(=O)X"],
+    "primary amide": ["WNC(=O)Y"],
+    "secondary amide": ["XNC(=O)Y"],
+    "tertiary amide": ["YNC(=O)Y"],
+    "acyl(amide)": ["O=C({N}){C}"],
     "sulfonic acid": ["O=S(O)=O"],
     "sulfone": ["O=S=O"],
     "sulfoxide": ["O=SY"],
+    "thiol(aryl)": ["WS{C1=CC=CC=C1}", "WS{c1ccccc1}"],
     "thiol": ["SW"],
     "thioether": ["SX"],
     "guanidine": ["N=C(N)N"],
@@ -151,14 +161,21 @@ functional_groups = {
     "isopropyl": ["YC(CW)(CW)"],
     "tert-butyl": ["YC(CW)(CW)(CW)"],
     "aldehyde": ["O=CX"],
-    "ketone": ["O=CY"],
+    "ketone": ["O=C({C}){C}"],
     "methoxy": ["WCOX"],
+    "ether(aryl)": ["XO{C1=CC=CC=C1}", "XO{c1ccccc1}"],
     "ether": ["OX"],
-    "hydroxyl": ["OW"],
+    "hydroxy(aryl)": ["WO{C1=CC=CC=C1}", "WO{c1ccccc1}"],
+    "hydroxyl": ["WO({C})"],
     "oxo": ["O"],
+    "amine(aryl)": ["N{C1=CC=CC=C1}", "N{c1ccccc1}"],
     "primary amine": ["NW"],
     "secondary amine": ["NX"],
     "tertiary amine": ["NY"],
+    "fluoro(aryl)": ["F{C1=CC=CC=C1}", "F{c1ccccc1}"],
+    "chloro(aryl)": ["Cl{C1=CC=CC=C1}", "Cl{c1ccccc1}"],
+    "bromo(aryl)": ["Br{C1=CC=CC=C1}", "Br{c1ccccc1}"],
+    "iodo(aryl)": ["I{C1=CC=CC=C1}", "I{c1ccccc1}"],
     "fluoro": ["F"],
     "chloro": ["Cl"],
     "bromo": ["Br"],
@@ -171,11 +188,13 @@ hydrocarbons = {
     "cyclohexene": ["C1CCC=CC1"],
     "1,3-cyclopentadiene": ["C1C=CC=C1"],
     "cyclopentene": ["C1CCC=C1"],
+    "arene ring fragment": ["{C1}=CC=CC={C1}", "{C}=1C=CC=C{C1}", "{C1}C=CC=C{C1}"],  # TODO come back to this one
     "cis alkene": [r"{R}/C(X)=C(X)\{R}", r"{R}\C(X)=C(X)/{R}"],
     "trans alkene": [r"{R}\C(X)=C(X)\{R}", r"{R}/C(X)=C(X)/{R}"],
     "terminal alkene": ["C=CW"],
     "trisubstitued alkene": ["C(Y)=C(X)"],
     "tetrasubstitued alkene": ["C(Y)=C(Y)"],
+    "alkene": ["C=C"],
     "terminal alkyne": ["C#CW"],
     "alkyne": ["C#C"],
     "addamantyl": ["C1(CC2C3)CC(C2)CC3C1"],

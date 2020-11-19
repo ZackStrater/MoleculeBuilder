@@ -1,7 +1,7 @@
 from Smiles_to_Structure import convert_to_structure, MoleculeStructure
 from collections import Counter
 from termcolor import cprint
-from fragments_library import peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
+from fragments_library import biomolecules, peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
 
 
 class AtomData:
@@ -519,7 +519,12 @@ def fragmentize(molecule_string, *fragment_libraries):
                 cprint(frag, "magenta")
                 for f in range(find_fragment(frag_res_structure, None, molecular_structure)):
                     fragments.append(frag)
+    atoms_not_discovered = 0
+    for atom in molecular_structure.atom_list:
+        if not atom.discovered:
+            atoms_not_discovered += 1
     print(fragments)
+    cprint(f"atoms not found: {atoms_not_discovered}", "red")
 
 
 def hierarchy_check(*libraries):  # TODO need to move this somewhere
@@ -554,11 +559,15 @@ from timeit import default_timer as timer
 
 starter = timer()
 start = time.process_time()
-fragmentize("CC(O/C(C/C=C/C=C(\C=C/C)CCC=C)=C/C)=O", peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+fragmentize(r"C[C@H]1[C@@H](O)[C@@](C)(N)C[C@H](O[C@@H]2[C@@H](O)[C@H](O)[C@@H](CO)O[C@H]2Oc3c(Oc4c(Cl)cc([C@@H](O)[C@@H](NC([C@H](NC)CC(C)C)=O)C(N[C@@H](CC(N)=O)C(N[C@H]5C(N[C@@H]6c7cc(c8c(O)cc(O)cc8[C@@H](C(O)=O)NC([C@@H](NC6=O)[C@@H]9O)=O)c(O)cc7)=O)=O)=O)cc4)cc5cc3Oc%10c(Cl)cc9cc%10)O1", biomolecules, peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
 print("time:")
 print(time.process_time() - start)
 ender = timer()
 print("timeit:")
 print(ender - starter)
 
+
+new_molecule = convert_to_structure(MoleculeStructure(), "CO[C@H]1C[C@@H](O[C@H]([C@@H]1OC(C)=O)C)O[C@H]2[C@@H]([C@H]([C@H](C[C@]3(C([C@@H]([C@H]([C@H]([C@H](OC([C@@H]2C)=O)C)C)OC(C)=O)C)=O)CO3)C)O[C@@H]4O[C@@H](C[C@H](N(C)C)[C@H]4OC(C)=O)C)C")
+new_molecule.mw()
+new_molecule.formula()
 

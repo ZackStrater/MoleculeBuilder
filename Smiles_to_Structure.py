@@ -7,6 +7,72 @@ class MoleculeStructure:
     def __init__(self):
         self.atom_list = []
 
+    def H_atoms(self):
+        expected_bonds_dict = {
+            "N": 3, "O": 2, "P": 3, "Si": 4, "S": 2, "C": 4, "B": 3,
+            "b": 3, "c": 4, "n": 3, "o": 2, "p": 3, "s": 2
+        }
+
+        bonds_values_dict = {
+            1: 1, 2: 2, 3: 3, 4: 1.5, 6: 1, 7: 1, 8: 0,
+        }
+
+        hydrogen_atoms = 0
+
+        for atom in self.atom_list:
+            if atom.symbol in expected_bonds_dict:  # adding hydrogen atoms
+                expected_bonds = expected_bonds_dict[atom.symbol]
+                actual_bonds = 0
+                for bond in atom.bonded_to:
+                    actual_bonds += bonds_values_dict[bond.bond_code]
+                if actual_bonds < expected_bonds:
+                    hydrogen_atoms += (expected_bonds-actual_bonds)
+        return hydrogen_atoms
+
+    def mw(self):
+        molecular_weight = 0
+
+        element_weights = {
+            "N": 14.0067, "O": 15.9994, "P": 30.9738, "Si": 28.086, "S": 32.06,
+            "F": 18.9984, "Cl": 35.453, "Br": 79.904,"I": 126.904, "C": 12.011, "B": 10.81,
+            "b": 10.81, "c": 12.011, "n": 14.0067, "o": 15.9994, "p": 30.9738, "s": 32.06
+        }
+
+        for atom in self.atom_list:
+            molecular_weight += element_weights[atom.symbol]
+
+        molecular_weight += 1.00784*self.H_atoms()
+
+        print(molecular_weight)
+        return molecular_weight
+
+    def formula(self):
+        symbol_counts = {
+            "C": 0, "H": 0, "B": 0, "Br": 0, "Cl": 0, "F": 0, "I": 0, "N": 0, "O": 0, "P": 0,  "S": 0, "Si": 0,
+            "b": 0, "c": 0, "n": 0, "o": 0, "p": 0, "s": 0
+        }
+
+        for atom in self.atom_list:
+            symbol_counts[atom.symbol] += 1
+
+        symbol_counts["H"] = self.H_atoms()
+
+        lowercase_symbols = []
+        for key in symbol_counts:
+            if key.islower():
+                symbol_counts[key.upper()] += symbol_counts[key]
+                lowercase_symbols.append(key)
+
+        for symbol in lowercase_symbols:
+            del symbol_counts[symbol]
+
+        formula_string = ""
+
+        for key, value in symbol_counts.items():
+            if value > 0:
+                formula_string += key + str(value)
+
+        print(formula_string.translate(str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")))
 
 bond_encoder = {
     "=": 2,  # double bond

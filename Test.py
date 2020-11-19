@@ -1,5 +1,7 @@
 
-a = "C"
+a = "Cl"
 
-if a not in ["B", "D"]:
+if a.islower():
     print("yes")
+else:
+    print("no")
