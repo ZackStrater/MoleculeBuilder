@@ -74,6 +74,7 @@ class MoleculeStructure:
 
         print(formula_string.translate(str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")))
 
+
 bond_encoder = {
     "=": 2,  # double bond
     "#": 3,  # triple bond
@@ -101,7 +102,11 @@ def encode_bond(bonding_info):
 # TODO add removal of H, [], and @ from string (for now)
 def convert_to_structure(molecule, smiles_string):  # TODO need to make it so you don't need molecule as an arg here @@@@@
 
-    corrected_smiles_string = re.sub(r"[\[\]H@]", "", smiles_string)  # TODO need to change this at some point
+    pre_correction = re.sub(r"|\(H\)|\(\[H\]\)", "", smiles_string)
+    # TODO need to find a way to deal with nonindcluded atoms
+    # TODO right now if it CGe(C)(C)(C), the first carbon won't have the parens in its bonding info
+    # TODO also maybe need to change this try, except
+    corrected_smiles_string = re.sub(r"[\[\]H@]", "", pre_correction)  # TODO need to change this at some point
     # if fragment has phantom atoms (signified by portions encapsulated by {}), add an * to each of those atoms
     if re.search(r"[{}]", corrected_smiles_string):
         def add_phantom_atoms(matchobj):
@@ -109,13 +114,11 @@ def convert_to_structure(molecule, smiles_string):  # TODO need to make it so yo
             return re.sub(r"[{}]", r"", first_edit)
 
         corrected_smiles_string = re.sub(r"({)(\S*?)(})", add_phantom_atoms, corrected_smiles_string)
-
     for match in re.findall(r"N|O|P|Si|S|F|Cl|Br|I|C|B|E|b|c|n|o|p|s|R|Q|W|X|Y|Z", corrected_smiles_string):
         molecule.atom_list.append(Atom(match))
         # create Atom object for each elemental symbol found in the smiles_string, keeps order of Atom in the string
         # R = any element
         # Q = any heteratom
-
     bond_map = re.findall(r"(?:N|O|P|Si|S|F|Cl|Br|I|C|B|E|b|c|n|o|p|s|R|Q|W|X|Y|Z)([^A-Za-z]*)", corrected_smiles_string)
     # ordered list containing all bonding symbol denoting bonding information following each element symbol
     # TODO at some point might need to add comprehension for charged parts i.e [nH4+]

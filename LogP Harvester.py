@@ -1,59 +1,63 @@
 import re
 from cas_name_logp_data import Kow_data
 from Smiles_CAS_name import Smiles_data
+import pandas as pd
+from find_fragments import fragmentize
+from fragments_library import biomolecules, peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons
 
-Chem_info1 = re.findall(r"(\d{6}-\d{2}-\d)(.+?)(\D\d{1}\.\d{2}\D)", Kow_data)
-# tuples with (CAS, Chemical Name, LogP value) - 12534 matches
+# list of tuples with (CAS, Chemical Name, LogP value)
+CAS_LogP = re.findall(r"(\d{6}-\d{2}-\d)(.+?)(\D\d{1}\.\d{2}\D)", Kow_data)
 
-CAS = [ele[0] for ele in Chem_info1]
-CAS = list(dict.fromkeys(CAS))
-# removing duplicates
-# all CAS from cheminfo1 - 12534 matches
-print("CAS")
-print(len(CAS))
+# dict with CAS as keys and properly formatted LogP as values (also gets rid of duplicates)
+CAS_LogP_dict = {t[0]: t[2][1:-1] for t in CAS_LogP}
+print(len(CAS_LogP_dict))
 
-Chemical_Names = [ele[1] for ele in Chem_info1]
+# list of tuples with (CAS, Chemical Name, smiles string)
+CAS_smiles = re.findall(r"(\d{6}-\d{2}-\d)(.+?)(\s\S+\s\S\s)(?=\d{6}-\d{2}-\d)", Smiles_data)
 
-LogP = [ele[2] for ele in Chem_info1]
+# dict with CAS as keys and properly formatted smiles string as values
+CAS_smiles_dict = {t[0]: t[2][1:-3] for t in CAS_smiles}
+print(len(CAS_smiles_dict))
 
-Chem_info2 = re.findall(r"(\d{6}-\d{2}-\d)(.+?)(\s\S+\s\S\s)", Smiles_data)
-# tuples with (CAS, Chemical Name, Smiles Formula - 107108 matches
+# add the CAS_LogP data to the combined list, excluding any CAS numbers that
+# don't show up in the CAS_smiles data.  the values are put inside a list
+combined_dict = {k: [v] for k, v in CAS_LogP_dict.items() if k in CAS_smiles_dict}
 
-print(len(Chem_info2))
+print(len(combined_dict))
 
-Corrected_Chem_info2 = [ele for ele in Chem_info2 if ele[0] in CAS]
-# Pairing down Cheminfo2 to filter out nonmatches wrt data from CAS1/cheminfo1- 12257 matches
-print("Corrected_Chem_info2")
-print(len(Corrected_Chem_info2))
+# append the smiles strings to the value (which is a list containing the logP)
+# of each CAS key
+for k, v in CAS_smiles_dict.items():
+    if k in combined_dict:
+        combined_dict[k].append(v)
 
-Corrected_CAS = [ele[0] for ele in Corrected_Chem_info2]
-print("corrected CAs")
-print(len(Corrected_CAS))
+combined_dict = {k: v for k, v in combined_dict.items() if "[" not in v[1]}
+print(len(combined_dict))
 
-CAS = [ele for ele in CAS if ele in Corrected_CAS]
-print("CAS")
-print(len(CAS))
+CAS_data = [key for key in combined_dict]
+LogP_data = [float(v[0]) for k, v in combined_dict.items()]  # convert values to numerical values
+smiles_data = [v[1] for k, v in combined_dict.items()]
 
-
-Smiles_formulas = [ele[2] for ele in Corrected_Chem_info2]
-# Smiles formulas; filtered out non-matches wrt data from CAS1/Chem_info1 - 12257 matches
-
-Smiles_formulas = [ele[1:-3] for ele in Smiles_formulas]
-print(Smiles_formulas)
-print(len(Smiles_formulas))
-# reformatting
-
-bracket_count = 0
-for ele in Smiles_formulas:
-    if "[" in ele:
-        bracket_count += 1
-print(bracket_count)
-#  497 strings with brackets
+df = pd.DataFrame({"CAS": CAS_data, "LogP": LogP_data, "smiles": smiles_data})
+#df["fragments"] = df["smiles"].map(lambda x: fragmentize(x, biomolecules, peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons))
 
 
 
-# make dictionary - > CAS - > name
-# make dictionary - > CAS _-> SMILES
-# make dictionary -> CAS -> Log P
+import time
+
+from timeit import default_timer as timer
 
 
+starter = timer()
+start = time.process_time()
+
+print("time:")
+print(time.process_time() - start)
+
+for e in smiles_data[0:100]:
+    print(e)
+    fragmentize(e, biomolecules, peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons)
+
+ender = timer()
+print("timeit:")
+print(ender - starter)

@@ -3,7 +3,7 @@
 
 # TODO maybe add system where atom has a fragemnt attribute (so you can tell if a nitrogen is conjugated for example)
 
-# could also check for CIS/Trans, and check for conjugation
+# TODO add phantom bonds to pyridine etc so as not to include pyridinium
 
 # TODO may need to distinguish between susbistuted amine heterocycles (i.e. methyl piperidine and piperidine)
 

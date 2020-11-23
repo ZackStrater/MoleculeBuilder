@@ -1,7 +1,11 @@
 
-a = "Cl"
+import re
+smiles_string = "C(H)CC[H]CC([H])"
 
-if a.islower():
-    print("yes")
-else:
-    print("no")
+
+
+
+corrected_smiles_string = re.sub(r"\(\[H\]\)|\(H\)", "", smiles_string)
+
+
+print(corrected_smiles_string)
