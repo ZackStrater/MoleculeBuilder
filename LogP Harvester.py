@@ -25,8 +25,10 @@ print(len(CAS_smiles_dict))
 # add the CAS_LogP data to the combined list, excluding any CAS numbers that
 # don't show up in the CAS_smiles data.  the values are put inside a list
 combined_dict = {k: [v] for k, v in CAS_LogP_dict.items() if k in CAS_smiles_dict}
-
+combined_dict.pop("000118-03-6", None)
 print(len(combined_dict))
+a = input("")
+
 
 # append the smiles strings to the value (which is a list containing the logP)
 # of each CAS key

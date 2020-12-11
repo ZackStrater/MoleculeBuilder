@@ -541,7 +541,7 @@ def fragmentize(molecule_string, *fragment_libraries, numeric=False):
         return fragments
 
 
-print(fragmentize(r"c1ccccc1N2C(=O)C(N(CP)C)=C(C)N(CC=C)C2=O", biomolecules, peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons))
+print(fragmentize(r"O=C1C=C(CN)ON1", biomolecules, peptide_amino_acids, heterocycles, arenes, functional_groups, hydrocarbons))
 
 
 
