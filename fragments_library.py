@@ -14,30 +14,30 @@ biomolecules = {
     }
 
 peptide_amino_acids = {
-    "Methionine": ["NC(C=O)CCSCW"],
-    "Tyrosine": ["NC(C=O)CC1=CC=C(O)C=C1"],
-    "Phenylalanine": ["NC(C=O)CC1=CC=CC=C1", "NC(C=O)Cc1ccccc1"],
-    "Tryptophan": ["NC(CC1=CNC2=CC=CC=C12)C=O", "NC(C=O)CC1=CNC2=C1C=CC=C2", "NC(Cc1cnc2ccccc12)C=O"],
-    "Asparagine": ["NC(C=O)CC(N)=O"],
-    "Glutamine": ["NC(C=O)CCC(N)=O"],
-    "Cysteine": ["NC(C=O)CS"],
-    "Lysine": ["NC(C=O)CCCCN"],
-    "Aspartic Acid": ["NC(C=O)CC(O)=O"],
-    "Glutamic Acid": ["NC(C=O)CCC(O)=O"],
-    "Histidine": ["NC(C=O)CC1=CNC=N1", "NC(CC1=CN=CN1)C=O", "NC(C=O)Cc1cncc1"],
-    "Arginine": ["NC(C=O)CCCNC(N)=N", "NC(CCCN=C(N)N)C=O", "NC(C=O)CCC/N=C(N)/N", r"NC(C=O)CCC\N=C(N)\N", r"O=C[C@@H](CCC/N=C(N)\N)N", r"O=C[C@@H](CCC\N=C(N)/N)N"],
-    "Tert-Leucine": ["NC(C=O)C(C)(C)C"],
-    "Cyclopropyl-Glycine": ["NC(C=O)C1CC1"],
-    "Pyroglutamic acid": ["C(C(CC1)NC1=O)=O"],
-    "Proline": ["C(C1NCCC1)=O"],
-    "Isoleucine": ["NC(C(CC)C)C=O"],
-    "Valine": ["NC(C=O)C(C)C"],
-    "Leucine": ["NC(C=O)CC(C)C"],
-    "Threonine": ["NC(C=O)C(C)O"],
-    "Serine": ["NC(C=O)CO"],
-    "Alanine": ["NC(C=O)CW"],
-    "substituted Glycine": ["NC(Y)C=O", "NC(Z)C=O"],
-    "Glycine": ["NC(X)C=O"],
+    "Methionine": ["NC(C({N})=O)CCSCW"],
+    "Tyrosine": ["NC(C({N})=O)CC1=CC=C(O)C=C1"],
+    "Phenylalanine": ["NC(C({N})=O)CC1=CC=CC=C1", "NC(C=O)Cc1ccccc1"],
+    "Tryptophan": ["NC(CC1=CNC2=CC=CC=C12)C({N})=O", "NC(C({N})=O)CC1=CNC2=C1C=CC=C2", "NC(Cc1cnc2ccccc12)C({N})=O"],
+    "Asparagine": ["NC(C({N})=O)CC(N)=O"],
+    "Glutamine": ["NC(C({N})=O)CCC(N)=O"],
+    "Cysteine": ["NC(C({N})=O)CS"],
+    "Lysine": ["NC(C({N})=O)CCCCN"],
+    "Aspartic Acid": ["NC(C({N})=O)CC(O)=O"],
+    "Glutamic Acid": ["NC(C({N})=O)CCC(O)=O"],
+    "Histidine": ["NC(C({N})=O)CC1=CNC=N1", "NC(CC1=CN=CN1)C({N})=O", "NC(C({N})=O)Cc1cncc1"],
+    "Arginine": ["NC(C({N})=O)CCCNC(N)=N", "NC(CCCN=C(N)N)C({N})=O", "NC(C({N})=O)CCC/N=C(N)/N", r"NC(C({N})=O)CCC\N=C(N)\N", r"O=C({N})C(CCC/N=C(N)\N)N", r"O=C({N})C(CCC\N=C(N)/N)N"],
+    "Tert-Leucine": ["NC(C({N})=O)C(C)(C)C"],
+    "Cyclopropyl-Glycine": ["NC(C({N})=O)C1CC1"],
+    "Pyroglutamic acid": ["C({N})(C(CC1)NC1=O)=O"],
+    "Proline": ["C({N})(C1NCCC1)=O"],
+    "Isoleucine": ["NC(C(CC)C)C({N})=O"],
+    "Valine": ["NC(C({N})=O)C(C)C"],
+    "Leucine": ["NC(C({N})=O)CC(C)C"],
+    "Threonine": ["NC(C({N})=O)C(C)O"],
+    "Serine": ["NC(C({N})=O)CO"],
+    "Alanine": ["NC(C({N})=O)CW"],
+    "substituted Glycine": ["NC(Y)C({N})=O", "NC(Z)C({N})=O"],
+    "Glycine": ["NC(X)C({N})=O"],
     }
 
 heterocycles = {
@@ -55,7 +55,7 @@ heterocycles = {
     "adenine": ["NC1=C2C(N=CN2)=NC=N1", "NC1=NC=NC2=C1NC=N2", "NC1=C2C(NC=N2)=NC=N1", "NC1=NC=NC2=C1N=CN2", "Nc1ncnc2ncnc12"],
     "purine": ["C1=NC=C2C(N=CN2)=N1", "C1(N=CN2)=C2C=NC=N1", "C12=CN=CN=C1NC=N2", "C12=C(C=NC=N2)N=CN1", "c1ncc2c(ncn2)n1"],
     "benzofuran": ["C1=C2C(C=CO2)=CC=C1", "C1(C=CO2)=C2C=CC=C1", "c1c2c(cco2)ccc1"],
-    "benzothiophene": ["C1=CC2=CC=CC=C2S1", "C1(C=CS2)=C2C=CC=C1", "c1cc2ccccc2s1"],
+    "benzothiophene": ["C1=CC2=CC=CC=C2S1", "C1(C=CS2)=C2C=CC=C1", "c1cc2ccccc2s1"],  # TODO benzimidazole, indazole, etc..
     "benzoisoxazole": ["C1=C(ON=C2)C2=CC=C1", "C12=C(C=NO2)C=CC=C1", "c1c(onc2)c2ccc1"],
     "benzoisothiazole": ["C1=NSC2=CC=CC=C21", "C1(C=NS2)=C2C=CC=C1", "c1nsc2ccccc21"],
     "benzoxazole": ["C1=NC2=CC=CC=C2O1", "C1(N=CO2)=C2C=CC=C1", "c1nc2ccccc2o1"],
@@ -114,13 +114,14 @@ arenes = {
     }
 
 functional_groups = {
+    "azide": ["NN#N", "N=N=N", "N=N#N"],
     "tetrahydropyran": ["C1CCCCO1"],
     "tetrahydrofuran": ["C1CCCO1"],
     "cyclohexanone": ["O=C1CCCCC1"],
     "cyclohexenone": ["O=C1C=CCCC1"],
     "enone": ["C=CC=O"],
     "enol": ["C=COW"],
-    "nitro": ["ON(=O)"],
+    "nitro": ["ON(=O)", "N(=O)(=O)"],
     "1,3-dioxolane": ["C1OCCO1"],
     "dimethylamine": ["WCNCW"],
     "diethylamine": ["WC(CY)N(CY)CW"],
@@ -217,41 +218,7 @@ hydrocarbons = {
     }
 
 
-def remove_r_groups():
-    from fragments_building_library import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, \
-        amino_acids
-    import re
 
-    t = open("test_file.txt", "w")
-    libs = [heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids]
-    for i in libs:
-        for key in i:
-            t.write("\"" + key + "\":")
-            t.write(" \"" + re.sub(r"\(\[R\]\)|\[R\]", "", i[key]) + "\",")
-            t.write("\n")
-        t.write("\n")
-
-    t.close()
-
-
-def aryl_smiles():
-    from fragments_building_library import heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, \
-        amino_acids
-    import re
-
-    t = open("test_file.txt", "w")
-    libs = [heterocycles, functionalized_arenes, functional_groups, hydrocarbons, amines, linkers, amino_acids]
-    for i in libs:
-        for key in i:
-            if "=" in i[key] and "1" in i[key]:
-                t.write("\"" + key + "\":")
-                a = re.sub(r"\(\[R\]\)|\[R\]", "", i[key])
-                b = re.sub(r"=", "", a)
-                t.write(" \"" + b.lower() + "\",")
-                t.write("\n")
-        t.write("\n")
-
-    t.close()
 
 
 
